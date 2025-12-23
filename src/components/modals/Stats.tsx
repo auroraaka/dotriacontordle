@@ -17,6 +17,9 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
   // Update countdown timer
   useEffect(() => {
     if (!isOpen) return;
+    
+    setTimeUntilNext(formatTimeUntilNextDaily());
+    
     const interval = setInterval(() => {
       setTimeUntilNext(formatTimeUntilNextDaily());
     }, 1000);
