@@ -39,9 +39,7 @@ export function GameBoard() {
           onClose={() => setExpandedBoard(null)}
           onNavigate={(direction) => {
             const newIndex = state.expandedBoard! + direction;
-            if (newIndex >= 0 && newIndex < 32) {
-              setExpandedBoard(newIndex);
-            }
+            setExpandedBoard(((newIndex % 32) + 32) % 32);
           }}
         />
       )}

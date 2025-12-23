@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronLeft, ChevronRight, Delete, CornerDownLeft } from 'lucide-react';
 import { WordGrid } from './WordGrid';
@@ -29,6 +29,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
   const { keyboardState, gameStatus, currentGuess } = state;
   const [glowMode, setGlowMode] = useState(false);
   const [showError, setShowError] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const settings = loadSettings();
@@ -53,6 +54,12 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose, onNavigate]);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [boardIndex]);
 
   const handleKeyClick = (key: string) => {
     if (gameStatus !== 'playing') return;
@@ -114,12 +121,23 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
             </button>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto flex justify-center py-2 mb-2">
-            <WordGrid boardIndex={boardIndex} showCurrentGuess />
+          <div 
+            ref={scrollContainerRef}
+            className="flex-1 min-h-0 overflow-y-auto flex justify-center py-2 mb-2"
+          >
+            <div className={`rounded-lg ${
+              board.solved 
+                ? 'ring-2 ring-tile-correct/50' 
+                : state.gameStatus === 'lost' 
+                ? 'ring-2 ring-red-500/50' 
+                : ''
+            }`}>
+              <WordGrid boardIndex={boardIndex} showCurrentGuess hideStatusRing />
+            </div>
           </div>
 
           {gameStatus === 'playing' && (
-            <div className="flex justify-center my-4 shrink-0">
+            <div className={`flex justify-center shrink-0 mb-4 ${board.solved ? 'mt-[60px] sm:mt-[68px]' : 'mt-4'}`}>
               <div className="flex gap-1 sm:gap-1.5 p-2 rounded-lg bg-bg-tertiary/60 border border-white/5">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
@@ -183,8 +201,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
           <div className="flex items-center justify-between pt-3 border-t border-white/10 shrink-0">
             <button
               onClick={() => onNavigate(-1)}
-              disabled={boardIndex === 0}
-              className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
               Prev
@@ -192,8 +209,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
 
             <button
               onClick={() => onNavigate(1)}
-              disabled={boardIndex === 31}
-              className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
             >
               Next
               <ChevronRight className="w-4 h-4" />

@@ -247,6 +247,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, [state.currentGuess, state.guesses]);
 
   const setExpandedBoard = useCallback((boardIndex: number | null) => {
+    setError(null);
     dispatch({ type: 'SET_EXPANDED_BOARD', boardIndex });
   }, []);
 

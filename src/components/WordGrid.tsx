@@ -11,6 +11,7 @@ interface WordGridProps {
   mini?: boolean;
   showCurrentGuess?: boolean;
   maxRows?: number;
+  hideStatusRing?: boolean;
 }
 
 export const WordGrid = memo(function WordGrid({
@@ -18,6 +19,7 @@ export const WordGrid = memo(function WordGrid({
   mini = false,
   showCurrentGuess = false,
   maxRows,
+  hideStatusRing = false,
 }: WordGridProps) {
   const { state, getEvaluationForBoard } = useGame();
   const board = state.boards[boardIndex];
@@ -29,7 +31,9 @@ export const WordGrid = memo(function WordGrid({
 
   const displayGuesses = maxRows ? relevantGuesses.slice(-maxRows) : relevantGuesses;
 
-  const statusClass = board.solved
+  const statusClass = hideStatusRing
+    ? ''
+    : board.solved
     ? 'ring-2 ring-tile-correct/50'
     : state.gameStatus === 'lost'
     ? 'ring-2 ring-red-500/50'
