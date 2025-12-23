@@ -12,6 +12,9 @@ const CACHE_EXPIRY_HOURS = 24;
 const MIN_ANSWER_POOL_SIZE = 500;
 const MIN_VALID_WORDS_SIZE = 2000;
 
+// Track pending validations to avoid duplicate API calls
+const pendingValidations = new Map<string, Promise<boolean>>();
+
 interface WordCache {
   validWords: string[];
   answerPool: string[];
@@ -156,30 +159,66 @@ class WordService {
   }
 
   /**
-   * Check if a word is valid
+   * Check if a word is valid (synchronous - only checks cache)
    */
-  isValidWord(word: string): boolean {
+  isValidWordSync(word: string): boolean {
     if (!this.isInitialized) {
-      // Fallback check if not initialized
       return FALLBACK_VALID_WORDS.has(word.toUpperCase());
     }
     return this.validWordsSet.has(word.toUpperCase());
   }
 
   /**
-   * Validate a word against the API in real-time (for unknown words)
+   * Check if a word might be valid (for quick UI feedback)
+   * Returns true if in cache, undefined if needs API check
    */
-  async validateWordOnline(word: string): Promise<boolean> {
+  quickCheck(word: string): boolean | undefined {
+    const upperWord = word.toUpperCase();
+    if (this.validWordsSet.has(upperWord)) return true;
+    if (!this.isInitialized) return FALLBACK_VALID_WORDS.has(upperWord);
+    return undefined; // Needs API validation
+  }
+
+  /**
+   * Validate a word - checks cache first, then API
+   * This is the primary validation method to use
+   */
+  async isValidWord(word: string): Promise<boolean> {
     if (word.length !== WORD_LENGTH) return false;
+    if (!/^[A-Za-z]+$/.test(word)) return false;
 
     const upperWord = word.toUpperCase();
 
     // Check cache first
     if (this.validWordsSet.has(upperWord)) return true;
+    if (FALLBACK_VALID_WORDS.has(upperWord)) {
+      this.validWordsSet.add(upperWord);
+      return true;
+    }
+
+    // Check if we already have a pending validation for this word
+    const pending = pendingValidations.get(upperWord);
+    if (pending) return pending;
 
     // Query API to verify
+    const validationPromise = this.validateWithApi(upperWord);
+    pendingValidations.set(upperWord, validationPromise);
+
     try {
-      const response = await fetch(`${DATAMUSE_API}?sp=${word.toLowerCase()}&max=1`);
+      const result = await validationPromise;
+      return result;
+    } finally {
+      pendingValidations.delete(upperWord);
+    }
+  }
+
+  /**
+   * Validate a word against the Datamuse API
+   */
+  private async validateWithApi(upperWord: string): Promise<boolean> {
+    try {
+      // Use the 'sp' (spelled like) parameter for exact match
+      const response = await fetch(`${DATAMUSE_API}?sp=${upperWord.toLowerCase()}&max=1`);
       if (!response.ok) return false;
 
       const data: Array<{ word: string }> = await response.json();
@@ -291,8 +330,9 @@ class WordService {
 export const wordService = new WordService();
 
 // Convenience exports
-export const isValidWord = (word: string) => wordService.isValidWord(word);
-export const validateWordOnline = (word: string) => wordService.validateWordOnline(word);
+export const isValidWord = (word: string): Promise<boolean> => wordService.isValidWord(word);
+export const quickCheckWord = (word: string) => wordService.quickCheck(word);
+export const isValidWordSync = (word: string) => wordService.isValidWordSync(word);
 export const getRandomAnswers = (count: number) => wordService.getRandomAnswers(count);
 export const initializeWordService = () => wordService.initialize();
 export const refreshWordService = () => wordService.refreshWords();

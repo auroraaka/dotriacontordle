@@ -10,7 +10,7 @@ import {
   NUM_BOARDS,
   MAX_GUESSES,
 } from '@/types/game';
-import { isValidWord, initializeWordService } from '@/lib/words';
+import { isValidWord, initializeWordService } from '@/lib/wordService';
 import { getRandomAnswers } from '@/lib/answers';
 import { getDailyNumber, getDailyAnswers } from '@/lib/daily';
 import { evaluateGuess, updateKeyboardState } from '@/lib/evaluate';
@@ -38,6 +38,7 @@ interface GameContextType {
   stats: GameStats;
   error: string | null;
   isLoadingWords: boolean;
+  isValidating: boolean;
   addLetter: (letter: string) => void;
   removeLetter: () => void;
   submitGuess: () => void;
@@ -91,7 +92,6 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'SUBMIT_GUESS': {
       if (state.gameStatus !== 'playing') return state;
       if (state.currentGuess.length !== WORD_LENGTH) return state;
-      if (!isValidWord(state.currentGuess)) return state;
 
       const newGuesses = [...state.guesses, state.currentGuess];
       const guessIndex = newGuesses.length - 1;
@@ -166,6 +166,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = React.useState<string | null>(null);
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [isLoadingWords, setIsLoadingWords] = useState(true);
+  const [isValidating, setIsValidating] = useState(false);
 
   // Initialize word service on mount
   useEffect(() => {
@@ -249,17 +250,28 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'REMOVE_LETTER' });
   }, []);
 
-  const submitGuess = useCallback(() => {
+  const submitGuess = useCallback(async () => {
     if (state.currentGuess.length !== WORD_LENGTH) {
       setError('Not enough letters');
       return;
     }
-    if (!isValidWord(state.currentGuess)) {
-      setError('Not in word list');
-      return;
+    
+    // Validate word asynchronously (checks cache first, then API)
+    setIsValidating(true);
+    try {
+      const valid = await isValidWord(state.currentGuess);
+      if (!valid) {
+        setError('Not in word list');
+        return;
+      }
+      setError(null);
+      dispatch({ type: 'SUBMIT_GUESS' });
+    } catch (e) {
+      console.error('Word validation error:', e);
+      setError('Error validating word');
+    } finally {
+      setIsValidating(false);
     }
-    setError(null);
-    dispatch({ type: 'SUBMIT_GUESS' });
   }, [state.currentGuess]);
 
   const setExpandedBoard = useCallback((boardIndex: number | null) => {
@@ -297,6 +309,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       stats,
       error,
       isLoadingWords,
+      isValidating,
       addLetter,
       removeLetter,
       submitGuess,
@@ -304,7 +317,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       newGame,
       getEvaluationForBoard,
     }),
-    [state, stats, error, isLoadingWords, addLetter, removeLetter, submitGuess, setExpandedBoard, newGame, getEvaluationForBoard]
+    [state, stats, error, isLoadingWords, isValidating, addLetter, removeLetter, submitGuess, setExpandedBoard, newGame, getEvaluationForBoard]
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
