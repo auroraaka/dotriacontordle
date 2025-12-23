@@ -121,18 +121,18 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
             </button>
           </div>
 
-          <div 
-            ref={scrollContainerRef}
-            className="flex-1 min-h-0 overflow-y-auto flex justify-center py-2 mb-2"
-          >
-            <div className={`rounded-lg ${
-              board.solved 
-                ? 'ring-2 ring-tile-correct/50' 
-                : state.gameStatus === 'lost' 
-                ? 'ring-2 ring-red-500/50' 
-                : ''
-            }`}>
-              <WordGrid boardIndex={boardIndex} showCurrentGuess hideStatusRing />
+          <div className="flex-1 min-h-0 flex justify-center">
+            <div 
+              ref={scrollContainerRef}
+              className={`overflow-y-auto p-2 mb-2 rounded-lg bg-bg-tertiary/50 no-scrollbar ${
+                board.solved 
+                  ? 'ring-2 ring-tile-correct/50' 
+                  : state.gameStatus === 'lost' 
+                  ? 'ring-2 ring-red-500/50' 
+                  : ''
+              }`}
+            >
+              <WordGrid boardIndex={boardIndex} showCurrentGuess hideStatusRing noBg />
             </div>
           </div>
 

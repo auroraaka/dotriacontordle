@@ -12,6 +12,7 @@ interface WordGridProps {
   showCurrentGuess?: boolean;
   maxRows?: number;
   hideStatusRing?: boolean;
+  noBg?: boolean;
 }
 
 export const WordGrid = memo(function WordGrid({
@@ -20,6 +21,7 @@ export const WordGrid = memo(function WordGrid({
   showCurrentGuess = false,
   maxRows,
   hideStatusRing = false,
+  noBg = false,
 }: WordGridProps) {
   const { state, getEvaluationForBoard } = useGame();
   const board = state.boards[boardIndex];
@@ -40,7 +42,7 @@ export const WordGrid = memo(function WordGrid({
     : '';
 
   return (
-    <div className={`flex flex-col gap-0.5 p-1 rounded-lg bg-bg-tertiary/50 ${statusClass} ${mini ? 'gap-px p-0.5' : 'gap-1 p-2'}`}>
+    <div className={`flex flex-col gap-0.5 p-1 rounded-lg ${noBg ? '' : 'bg-bg-tertiary/50'} ${statusClass} ${mini ? 'gap-px p-0.5' : 'gap-1 p-2'}`}>
       {displayGuesses.map((guess, guessIdx) => {
         const actualGuessIndex = maxRows
           ? relevantGuesses.length - displayGuesses.length + guessIdx
