@@ -6,10 +6,11 @@ import { GameProvider, useGame } from '@/context/GameContext';
 import { Header } from '@/components/Header';
 import { GameBoard } from '@/components/GameBoard';
 import { Keyboard } from '@/components/Keyboard';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { loadSettings } from '@/lib/storage';
 
 function GameContent() {
-  const { state, error } = useGame();
+  const { state, error, isLoadingWords } = useGame();
   const [showError, setShowError] = useState(false);
 
   // Initialize glow mode from settings on load
@@ -29,6 +30,11 @@ function GameContent() {
       return () => clearTimeout(timer);
     }
   }, [error]);
+
+  // Show loading screen while fetching words
+  if (isLoadingWords) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="h-screen flex flex-col bg-bg-primary overflow-hidden">

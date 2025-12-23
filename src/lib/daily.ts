@@ -1,4 +1,4 @@
-import { getRandomAnswers } from './answers';
+import { getDailyAnswersFromPool } from './answers';
 import { NUM_BOARDS } from '@/types/game';
 
 // Epoch date for daily puzzle numbering (adjust as needed)
@@ -16,12 +16,13 @@ export function getDailyNumber(): number {
 
 /**
  * Get the answers for a specific daily puzzle
- * Uses the daily number as a seed for consistent results
+ * Uses the STATIC answer pool with a seeded shuffle to ensure
+ * all players get the same words on the same day
  */
 export function getDailyAnswers(dailyNumber: number): string[] {
   // Create a seed based on the daily number
   const seed = dailyNumber * 12345 + 67890;
-  return getRandomAnswers(NUM_BOARDS, seed);
+  return getDailyAnswersFromPool(NUM_BOARDS, seed);
 }
 
 /**
@@ -56,4 +57,3 @@ export function formatTimeUntilNextDaily(): string {
   const { hours, minutes, seconds } = getTimeUntilNextDaily();
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
-

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, useState } from 'react';
 import {
   GameState,
   GameStats,
@@ -10,7 +10,7 @@ import {
   NUM_BOARDS,
   MAX_GUESSES,
 } from '@/types/game';
-import { isValidWord } from '@/lib/words';
+import { isValidWord, initializeWordService } from '@/lib/words';
 import { getRandomAnswers } from '@/lib/answers';
 import { getDailyNumber, getDailyAnswers } from '@/lib/daily';
 import { evaluateGuess, updateKeyboardState } from '@/lib/evaluate';
@@ -37,6 +37,7 @@ interface GameContextType {
   state: GameState;
   stats: GameStats;
   error: string | null;
+  isLoadingWords: boolean;
   addLetter: (letter: string) => void;
   removeLetter: () => void;
   submitGuess: () => void;
@@ -164,19 +165,49 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [stats, setStats] = React.useState<GameStats>(() => loadStats());
   const [error, setError] = React.useState<string | null>(null);
   const [isInitialized, setIsInitialized] = React.useState(false);
+  const [isLoadingWords, setIsLoadingWords] = useState(true);
 
-  // Load saved state on mount
+  // Initialize word service on mount
   useEffect(() => {
+    let mounted = true;
+    
+    async function init() {
+      setIsLoadingWords(true);
+      try {
+        await initializeWordService();
+      } catch (e) {
+        console.error('Failed to initialize word service:', e);
+      } finally {
+        if (mounted) {
+          setIsLoadingWords(false);
+        }
+      }
+    }
+    
+    init();
+    
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Load saved state on mount (after words are loaded)
+  useEffect(() => {
+    if (isLoadingWords) return;
+    
     const dailyNumber = getDailyNumber();
     const savedDaily = loadGameState('daily', dailyNumber);
 
     if (savedDaily) {
       dispatch({ type: 'LOAD_STATE', state: savedDaily });
+    } else {
+      // Reinitialize with fresh answers now that words are loaded
+      dispatch({ type: 'NEW_GAME', mode: 'daily' });
     }
 
     setStats(loadStats());
     setIsInitialized(true);
-  }, []);
+  }, [isLoadingWords]);
 
   // Save state when it changes
   useEffect(() => {
@@ -195,7 +226,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       );
       setStats(newStats);
     }
-  }, [state.gameStatus, isInitialized]);
+  }, [state.gameStatus, isInitialized, state.guesses.length, state.gameMode, state.dailyNumber]);
 
   // Actions
   const addLetter = useCallback((letter: string) => {
@@ -255,6 +286,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       state,
       stats,
       error,
+      isLoadingWords,
       addLetter,
       removeLetter,
       submitGuess,
@@ -262,7 +294,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       newGame,
       getEvaluationForBoard,
     }),
-    [state, stats, error, addLetter, removeLetter, submitGuess, setExpandedBoard, newGame, getEvaluationForBoard]
+    [state, stats, error, isLoadingWords, addLetter, removeLetter, submitGuess, setExpandedBoard, newGame, getEvaluationForBoard]
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
@@ -276,4 +308,3 @@ export function useGame() {
   }
   return context;
 }
-
