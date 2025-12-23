@@ -1,24 +1,24 @@
 <svg version="1.1" viewBox="0 0 64 64" fill="none" stroke="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="64" height="64" fill="#0a0a0f"/>
     <!-- Row 1 -->
-    <rect x="2" y="2" width="13" height="13" fill="#a855f7"/>
-    <rect x="17" y="2" width="13" height="13" fill="#a855f7"/>
-    <rect x="32" y="2" width="13" height="13" fill="#3a3a48"/>
-    <rect x="47" y="2" width="13" height="13" fill="#3a3a48"/>
+    <rect x="3" y="3" width="13" height="13" fill="#a855f7"/>
+    <rect x="18" y="3" width="13" height="13" fill="#a855f7"/>
+    <rect x="33" y="3" width="13" height="13" fill="#3a3a48"/>
+    <rect x="48" y="3" width="13" height="13" fill="#3a3a48"/>
     <!-- Row 2 -->
-    <rect x="2" y="17" width="13" height="13" fill="#06b6d4"/>
-    <rect x="17" y="17" width="13" height="13" fill="#a855f7"/>
-    <rect x="32" y="17" width="13" height="13" fill="#a855f7"/>
-    <rect x="47" y="17" width="13" height="13" fill="#3a3a48"/>
+    <rect x="3" y="18" width="13" height="13" fill="#06b6d4"/>
+    <rect x="18" y="18" width="13" height="13" fill="#a855f7"/>
+    <rect x="33" y="18" width="13" height="13" fill="#a855f7"/>
+    <rect x="48" y="18" width="13" height="13" fill="#3a3a48"/>
     <!-- Row 3 -->
-    <rect x="2" y="32" width="13" height="13" fill="#06b6d4"/>
-    <rect x="17" y="32" width="13" height="13" fill="#06b6d4"/>
-    <rect x="32" y="32" width="13" height="13" fill="#a855f7"/>
-    <rect x="47" y="32" width="13" height="13" fill="#a855f7"/>
+    <rect x="3" y="33" width="13" height="13" fill="#06b6d4"/>
+    <rect x="18" y="33" width="13" height="13" fill="#06b6d4"/>
+    <rect x="33" y="33" width="13" height="13" fill="#a855f7"/>
+    <rect x="48" y="33" width="13" height="13" fill="#a855f7"/>
     <!-- Row 4 -->
-    <rect x="2" y="47" width="13" height="13" fill="#06b6d4"/>
-    <rect x="17" y="47" width="13" height="13" fill="#06b6d4"/>
-    <rect x="32" y="47" width="13" height="13" fill="#06b6d4"/>
-    <rect x="47" y="47" width="13" height="13" fill="#06b6d4"/>
+    <rect x="3" y="48" width="13" height="13" fill="#06b6d4"/>
+    <rect x="18" y="48" width="13" height="13" fill="#06b6d4"/>
+    <rect x="33" y="48" width="13" height="13" fill="#06b6d4"/>
+    <rect x="48" y="48" width="13" height="13" fill="#06b6d4"/>
 </svg>
 
