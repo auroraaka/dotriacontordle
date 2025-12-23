@@ -30,19 +30,10 @@ export function Tile({ letter, state, delay = 0, size = 'normal', animate = true
 
   return (
     <motion.div
-      className={`
-        flex items-center justify-center font-bold uppercase select-none
-        ${stateStyles[state]}
-        ${sizeStyles[size]}
-        transition-colors duration-100
-      `}
+      className={`flex items-center justify-center font-bold uppercase select-none transition-colors duration-100 ${stateStyles[state]} ${sizeStyles[size]}`}
       initial={shouldAnimate ? { rotateX: 0 } : false}
       animate={shouldAnimate ? { rotateX: 360 } : false}
-      transition={{
-        duration: 0.3,
-        delay: delay,
-        ease: 'easeOut',
-      }}
+      transition={{ duration: 0.3, delay, ease: 'easeOut' }}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.span
@@ -56,17 +47,12 @@ export function Tile({ letter, state, delay = 0, size = 'normal', animate = true
   );
 }
 
-// Pop animation for when a letter is typed
-export function TileWithPop({ letter, state, delay = 0, size = 'normal' }: TileProps) {
+export function TileWithPop({ letter, state, size = 'normal' }: TileProps) {
   const hasLetter = letter !== '';
 
   return (
     <motion.div
-      className={`
-        flex items-center justify-center font-bold uppercase select-none
-        ${stateStyles[state]}
-        ${sizeStyles[size]}
-      `}
+      className={`flex items-center justify-center font-bold uppercase select-none ${stateStyles[state]} ${sizeStyles[size]}`}
       initial={false}
       animate={hasLetter && state === 'tbd' ? { scale: [1, 1.1, 1] } : {}}
       transition={{ duration: 0.1 }}
@@ -75,4 +61,3 @@ export function TileWithPop({ letter, state, delay = 0, size = 'normal' }: TileP
     </motion.div>
   );
 }
-

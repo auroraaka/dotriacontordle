@@ -22,16 +22,13 @@ import {
   createInitialBoards,
 } from '@/lib/storage';
 
-// Action types
 type GameAction =
   | { type: 'ADD_LETTER'; letter: string }
   | { type: 'REMOVE_LETTER' }
   | { type: 'SUBMIT_GUESS' }
   | { type: 'SET_EXPANDED_BOARD'; boardIndex: number | null }
   | { type: 'NEW_GAME'; mode: 'daily' | 'free' }
-  | { type: 'LOAD_STATE'; state: GameState }
-  | { type: 'SET_ERROR'; message: string }
-  | { type: 'CLEAR_ERROR' };
+  | { type: 'LOAD_STATE'; state: GameState };
 
 interface GameContextType {
   state: GameState;
@@ -49,7 +46,6 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | null>(null);
 
-// Create initial state
 function createInitialState(mode: 'daily' | 'free'): GameState {
   const dailyNumber = getDailyNumber();
   const answers = mode === 'daily'
@@ -68,7 +64,6 @@ function createInitialState(mode: 'daily' | 'free'): GameState {
   };
 }
 
-// Reducer
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'ADD_LETTER': {
@@ -96,38 +91,28 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const newGuesses = [...state.guesses, state.currentGuess];
       const guessIndex = newGuesses.length - 1;
 
-      // Evaluate against all unsolved boards
       const newBoards: BoardState[] = state.boards.map((board) => {
         if (board.solved) return board;
 
         const evaluation = evaluateGuess(state.currentGuess, board.answer);
         if (evaluation.isCorrect) {
-          return {
-            ...board,
-            solved: true,
-            solvedAtGuess: guessIndex,
-          };
+          return { ...board, solved: true, solvedAtGuess: guessIndex };
         }
         return board;
       });
 
-      // Update keyboard state
       let newKeyboardState = { ...state.keyboardState };
       for (const board of newBoards) {
         const evaluation = evaluateGuess(state.currentGuess, board.answer);
         newKeyboardState = updateKeyboardState(newKeyboardState, state.currentGuess, evaluation.states);
       }
 
-      // Check game status
       const allSolved = newBoards.every((b) => b.solved);
       const outOfGuesses = newGuesses.length >= MAX_GUESSES;
 
       let newStatus: 'playing' | 'won' | 'lost' = 'playing';
-      if (allSolved) {
-        newStatus = 'won';
-      } else if (outOfGuesses) {
-        newStatus = 'lost';
-      }
+      if (allSolved) newStatus = 'won';
+      else if (outOfGuesses) newStatus = 'lost';
 
       return {
         ...state,
@@ -139,27 +124,20 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
-    case 'SET_EXPANDED_BOARD': {
-      return {
-        ...state,
-        expandedBoard: action.boardIndex,
-      };
-    }
+    case 'SET_EXPANDED_BOARD':
+      return { ...state, expandedBoard: action.boardIndex };
 
-    case 'NEW_GAME': {
+    case 'NEW_GAME':
       return createInitialState(action.mode);
-    }
 
-    case 'LOAD_STATE': {
+    case 'LOAD_STATE':
       return action.state;
-    }
 
     default:
       return state;
   }
 }
 
-// Provider component
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, null, () => createInitialState('daily'));
   const [stats, setStats] = React.useState<GameStats>(() => loadStats());
@@ -168,7 +146,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [isLoadingWords, setIsLoadingWords] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
 
-  // Initialize word service on mount
   useEffect(() => {
     let mounted = true;
     
@@ -187,22 +164,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           const remainingTime = Math.max(0, MIN_LOADING_TIME - elapsed);
           
           setTimeout(() => {
-            if (mounted) {
-              setIsLoadingWords(false);
-            }
+            if (mounted) setIsLoadingWords(false);
           }, remainingTime);
         }
       }
     }
     
     init();
-    
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
-  // Load saved state on mount (after words are loaded)
   useEffect(() => {
     if (isLoadingWords) return;
     
@@ -212,7 +183,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (savedDaily) {
       dispatch({ type: 'LOAD_STATE', state: savedDaily });
     } else {
-      // Reinitialize with fresh answers now that words are loaded
       dispatch({ type: 'NEW_GAME', mode: 'daily' });
     }
 
@@ -220,14 +190,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setIsInitialized(true);
   }, [isLoadingWords]);
 
-  // Save state when it changes
   useEffect(() => {
     if (isInitialized && state.gameStatus === 'playing') {
       saveGameState(state, state.gameMode);
     }
   }, [state, isInitialized]);
 
-  // Update stats when game ends
   useEffect(() => {
     if (isInitialized && (state.gameStatus === 'won' || state.gameStatus === 'lost')) {
       const newStats = updateStatsAfterGame(
@@ -239,7 +207,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.gameStatus, isInitialized, state.guesses.length, state.gameMode, state.dailyNumber]);
 
-  // Actions
   const addLetter = useCallback((letter: string) => {
     setError(null);
     dispatch({ type: 'ADD_LETTER', letter });
@@ -256,7 +223,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     
-    // Validate word asynchronously (checks cache first, then API)
     setIsValidating(true);
     try {
       const valid = await isValidWord(state.currentGuess);
@@ -283,7 +249,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'NEW_GAME', mode });
   }, []);
 
-  // Get evaluation for a specific board and guess
   const getEvaluationForBoard = useCallback(
     (boardIndex: number, guessIndex: number): TileState[] => {
       const board = state.boards[boardIndex];
@@ -293,7 +258,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         return new Array(WORD_LENGTH).fill('empty');
       }
 
-      // If board was already solved before this guess, show empty
       if (board.solved && board.solvedAtGuess !== null && guessIndex > board.solvedAtGuess) {
         return new Array(WORD_LENGTH).fill('empty');
       }
@@ -323,7 +287,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
 
-// Hook
 export function useGame() {
   const context = useContext(GameContext);
   if (!context) {

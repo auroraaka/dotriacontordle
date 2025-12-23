@@ -5,7 +5,6 @@ import { motion } from 'motion/react';
 export function LoadingScreen() {
   return (
     <div className="h-screen flex flex-col items-center justify-center bg-bg-primary overflow-hidden">
-      {/* Animated Logo */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -20,7 +19,6 @@ export function LoadingScreen() {
         </p>
       </motion.div>
 
-      {/* Loading Animation - Tiles */}
       <div className="flex gap-2 mb-6">
         {Array.from({ length: 6 }).map((_, i) => (
           <motion.div
@@ -45,7 +43,6 @@ export function LoadingScreen() {
         ))}
       </div>
 
-      {/* Loading Text */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -65,9 +62,7 @@ export function LoadingScreen() {
         </p>
       </motion.div>
 
-      {/* Background Pattern */}
       <div className="fixed inset-0 -z-10 bg-grid-pattern opacity-5 pointer-events-none" />
     </div>
   );
 }
-

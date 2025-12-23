@@ -10,7 +10,6 @@ export function GameBoard() {
 
   return (
     <>
-      {/* 8x4 Grid of mini boards */}
       <div className="w-full h-full max-w-[1600px] mx-auto flex items-center justify-center">
         <div
           className="grid gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 w-full h-full max-h-full"
@@ -34,7 +33,6 @@ export function GameBoard() {
         </div>
       </div>
 
-      {/* Expanded board modal */}
       {state.expandedBoard !== null && (
         <ExpandedBoard
           boardIndex={state.expandedBoard}
@@ -50,4 +48,3 @@ export function GameBoard() {
     </>
   );
 }
-

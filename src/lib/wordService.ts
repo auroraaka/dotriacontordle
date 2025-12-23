@@ -1,18 +1,10 @@
-/**
- * Word Service - Fetches words dynamically from Datamuse API
- * with local caching for performance and offline support
- */
-
 const DATAMUSE_API = 'https://api.datamuse.com/words';
 const WORD_LENGTH = 6;
 const CACHE_KEY = 'dotriacontordle_word_cache';
 const CACHE_EXPIRY_HOURS = 24;
-
-// Minimum words we need for the game to function
 const MIN_ANSWER_POOL_SIZE = 500;
 const MIN_VALID_WORDS_SIZE = 2000;
 
-// Track pending validations to avoid duplicate API calls
 const pendingValidations = new Map<string, Promise<boolean>>();
 
 interface WordCache {
@@ -21,7 +13,6 @@ interface WordCache {
   timestamp: number;
 }
 
-// Small fallback list for offline/error scenarios
 const FALLBACK_ANSWERS: string[] = [
   'ABROAD', 'ACTION', 'ANIMAL', 'ANSWER', 'BEAUTY', 'BEFORE', 'BETTER', 'BORDER',
   'BOTTLE', 'BRANCH', 'BREATH', 'BRIDGE', 'BRIGHT', 'BROKEN', 'BUDGET', 'BUTTON',
@@ -50,15 +41,8 @@ class WordService {
   private isInitialized = false;
   private initPromise: Promise<void> | null = null;
 
-  /**
-   * Initialize the word service - fetches and caches words
-   */
   async initialize(): Promise<void> {
-    // Prevent multiple simultaneous initializations
-    if (this.initPromise) {
-      return this.initPromise;
-    }
-
+    if (this.initPromise) return this.initPromise;
     this.initPromise = this._doInitialize();
     return this.initPromise;
   }
@@ -66,17 +50,14 @@ class WordService {
   private async _doInitialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    // Try to load from cache first
     const cached = this.loadFromCache();
     if (cached) {
       this.validWordsSet = new Set(cached.validWords);
       this.answerPool = cached.answerPool;
       this.isInitialized = true;
-      console.log(`Loaded ${this.validWordsSet.size} valid words and ${this.answerPool.length} answers from cache`);
       return;
     }
 
-    // Fetch fresh words from API
     try {
       await this.fetchAndCacheWords();
       this.isInitialized = true;
@@ -88,18 +69,9 @@ class WordService {
     }
   }
 
-  /**
-   * Fetch words from Datamuse API
-   */
   private async fetchAndCacheWords(): Promise<void> {
-    console.log('Fetching words from Datamuse API...');
-
-    // Fetch common 6-letter words (sp=?????? matches 6 chars, md=f gets frequency)
-    // We use multiple queries to get a good variety
     const queries = [
-      // Common words by frequency
       `${DATAMUSE_API}?sp=${'?'.repeat(WORD_LENGTH)}&max=1000&md=f`,
-      // Words related to common topics for variety
       `${DATAMUSE_API}?ml=common&sp=${'?'.repeat(WORD_LENGTH)}&max=500`,
       `${DATAMUSE_API}?ml=action&sp=${'?'.repeat(WORD_LENGTH)}&max=300`,
       `${DATAMUSE_API}?ml=thing&sp=${'?'.repeat(WORD_LENGTH)}&max=300`,
@@ -119,13 +91,10 @@ class WordService {
 
         for (const item of data) {
           const word = item.word.toUpperCase();
-
-          // Only accept exactly 6 letters, alphabetic only
           if (word.length !== WORD_LENGTH || !/^[A-Z]+$/.test(word)) continue;
 
           allWords.add(word);
 
-          // Extract frequency if available
           const freqTag = item.tags?.find(t => t.startsWith('f:'));
           if (freqTag) {
             const freq = parseFloat(freqTag.slice(2));
@@ -137,94 +106,52 @@ class WordService {
       }
     }
 
-    // Sort by frequency and take the most common for the answer pool
     frequentWords.sort((a, b) => b.freq - a.freq);
-    const topWords = frequentWords
-      .slice(0, MIN_ANSWER_POOL_SIZE)
-      .map(w => w.word);
+    const topWords = frequentWords.slice(0, MIN_ANSWER_POOL_SIZE).map(w => w.word);
 
-    // Use all fetched words as valid words, add fallbacks to ensure minimum
     this.validWordsSet = new Set([...allWords, ...FALLBACK_VALID_WORDS]);
     this.answerPool = topWords.length >= 100 ? topWords : [...FALLBACK_ANSWERS];
 
-    // Ensure answer pool words are in valid words
     for (const word of this.answerPool) {
       this.validWordsSet.add(word);
     }
 
-    console.log(`Fetched ${this.validWordsSet.size} valid words and ${this.answerPool.length} answers`);
-
-    // Cache the results
     this.saveToCache();
   }
 
-  /**
-   * Check if a word is valid (synchronous - only checks cache)
-   */
-  isValidWordSync(word: string): boolean {
-    if (!this.isInitialized) {
-      return FALLBACK_VALID_WORDS.has(word.toUpperCase());
-    }
-    return this.validWordsSet.has(word.toUpperCase());
-  }
-
-  /**
-   * Check if a word might be valid (for quick UI feedback)
-   * Returns true if in cache, undefined if needs API check
-   */
-  quickCheck(word: string): boolean | undefined {
-    const upperWord = word.toUpperCase();
-    if (this.validWordsSet.has(upperWord)) return true;
-    if (!this.isInitialized) return FALLBACK_VALID_WORDS.has(upperWord);
-    return undefined; // Needs API validation
-  }
-
-  /**
-   * Validate a word - checks cache first, then API
-   * This is the primary validation method to use
-   */
   async isValidWord(word: string): Promise<boolean> {
     if (word.length !== WORD_LENGTH) return false;
     if (!/^[A-Za-z]+$/.test(word)) return false;
 
     const upperWord = word.toUpperCase();
 
-    // Check cache first
     if (this.validWordsSet.has(upperWord)) return true;
     if (FALLBACK_VALID_WORDS.has(upperWord)) {
       this.validWordsSet.add(upperWord);
       return true;
     }
 
-    // Check if we already have a pending validation for this word
     const pending = pendingValidations.get(upperWord);
     if (pending) return pending;
 
-    // Query API to verify
     const validationPromise = this.validateWithApi(upperWord);
     pendingValidations.set(upperWord, validationPromise);
 
     try {
-      const result = await validationPromise;
-      return result;
+      return await validationPromise;
     } finally {
       pendingValidations.delete(upperWord);
     }
   }
 
-  /**
-   * Validate a word against the Datamuse API
-   */
   private async validateWithApi(upperWord: string): Promise<boolean> {
     try {
-      // Use the 'sp' (spelled like) parameter for exact match
       const response = await fetch(`${DATAMUSE_API}?sp=${upperWord.toLowerCase()}&max=1`);
       if (!response.ok) return false;
 
       const data: Array<{ word: string }> = await response.json();
       const isValid = data.some(item => item.word.toUpperCase() === upperWord);
 
-      // Add to cache if valid
       if (isValid) {
         this.validWordsSet.add(upperWord);
         this.saveToCache();
@@ -236,9 +163,6 @@ class WordService {
     }
   }
 
-  /**
-   * Get random answers for freeplay mode
-   */
   getRandomAnswers(count: number): string[] {
     const pool = this.isInitialized && this.answerPool.length > 0
       ? this.answerPool
@@ -253,9 +177,6 @@ class WordService {
     return shuffled.slice(0, count);
   }
 
-  /**
-   * Load words from localStorage cache
-   */
   private loadFromCache(): WordCache | null {
     if (typeof window === 'undefined') return null;
 
@@ -265,14 +186,12 @@ class WordService {
 
       const data: WordCache = JSON.parse(cached);
 
-      // Check if cache is expired
       const ageHours = (Date.now() - data.timestamp) / (1000 * 60 * 60);
       if (ageHours > CACHE_EXPIRY_HOURS) {
         localStorage.removeItem(CACHE_KEY);
         return null;
       }
 
-      // Validate cache has enough data
       if (data.validWords.length < MIN_VALID_WORDS_SIZE / 2 ||
           data.answerPool.length < MIN_ANSWER_POOL_SIZE / 2) {
         return null;
@@ -284,9 +203,6 @@ class WordService {
     }
   }
 
-  /**
-   * Save words to localStorage cache
-   */
   private saveToCache(): void {
     if (typeof window === 'undefined') return;
 
@@ -301,39 +217,10 @@ class WordService {
       console.warn('Failed to save word cache:', e);
     }
   }
-
-  /**
-   * Force refresh words from API
-   */
-  async refreshWords(): Promise<void> {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(CACHE_KEY);
-    }
-    this.isInitialized = false;
-    this.initPromise = null;
-    await this.initialize();
-  }
-
-  /**
-   * Get stats about loaded words
-   */
-  getStats(): { validWords: number; answerPool: number; isInitialized: boolean } {
-    return {
-      validWords: this.validWordsSet.size,
-      answerPool: this.answerPool.length,
-      isInitialized: this.isInitialized,
-    };
-  }
 }
 
-// Singleton instance
 export const wordService = new WordService();
 
-// Convenience exports
-export const isValidWord = (word: string): Promise<boolean> => wordService.isValidWord(word);
-export const quickCheckWord = (word: string) => wordService.quickCheck(word);
-export const isValidWordSync = (word: string) => wordService.isValidWordSync(word);
+export const isValidWord = (word: string) => wordService.isValidWord(word);
 export const getRandomAnswers = (count: number) => wordService.getRandomAnswers(count);
 export const initializeWordService = () => wordService.initialize();
-export const refreshWordService = () => wordService.refreshWords();
-

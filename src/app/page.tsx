@@ -14,7 +14,6 @@ function GameContent() {
   const [showError, setShowError] = useState(false);
   const [glowMode, setGlowMode] = useState(false);
 
-  // Initialize glow mode from settings on load
   useEffect(() => {
     const settings = loadSettings();
     setGlowMode(settings.glowMode);
@@ -25,15 +24,11 @@ function GameContent() {
     }
   }, []);
 
-  // Listen for glow mode changes
   useEffect(() => {
-    const handleGlowModeChange = () => {
+    const interval = setInterval(() => {
       const settings = loadSettings();
       setGlowMode(settings.glowMode);
-    };
-    
-    // Check for changes periodically (settings modal updates localStorage)
-    const interval = setInterval(handleGlowModeChange, 100);
+    }, 100);
     return () => clearInterval(interval);
   }, []);
 
@@ -45,7 +40,6 @@ function GameContent() {
     }
   }, [error]);
 
-  // Show loading screen while fetching words
   if (isLoadingWords) {
     return <LoadingScreen />;
   }
@@ -54,7 +48,6 @@ function GameContent() {
     <div className="h-screen flex flex-col bg-bg-primary overflow-hidden">
       <Header />
 
-      {/* Error Toast */}
       <AnimatePresence>
         {showError && error && (
           <motion.div
@@ -68,17 +61,15 @@ function GameContent() {
         )}
       </AnimatePresence>
 
-      {/* Game Over Banner */}
       <AnimatePresence>
         {state.gameStatus !== 'playing' && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className={`
-              w-full py-2 text-center font-bold text-base shrink-0
-              ${state.gameStatus === 'won' ? 'bg-tile-correct/20 text-tile-correct' : 'bg-red-500/20 text-red-400'}
-            `}
+            className={`w-full py-2 text-center font-bold text-base shrink-0 ${
+              state.gameStatus === 'won' ? 'bg-tile-correct/20 text-tile-correct' : 'bg-red-500/20 text-red-400'
+            }`}
           >
             {state.gameStatus === 'won' ? (
               <>🎉 Congratulations! You solved all 32 words in {state.guesses.length} guesses!</>
@@ -89,30 +80,23 @@ function GameContent() {
         )}
       </AnimatePresence>
 
-      {/* Main Game Area - fills remaining space */}
       <main className="flex-1 flex flex-col min-h-0">
-        {/* Game Board - takes up available space */}
         <div className="flex-1 min-h-0 flex items-center justify-center p-2 sm:p-4">
           <GameBoard />
         </div>
 
-        {/* Bottom Section - fixed height */}
         <div className="shrink-0 pb-2 sm:pb-4 px-2 sm:px-4">
-          {/* Current Guess Display */}
           {state.gameStatus === 'playing' && (
             <div className="flex justify-center mb-3">
               <div className="flex gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl bg-bg-tertiary/60 backdrop-blur-sm border border-white/5">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
-                    className={`
-                      w-10 h-12 sm:w-12 sm:h-14 rounded-lg font-bold text-2xl sm:text-3xl
-                      flex items-center justify-center uppercase
-                      transition-all duration-150 border-2
-                      ${state.currentGuess[i] 
+                    className={`w-10 h-12 sm:w-12 sm:h-14 rounded-lg font-bold text-2xl sm:text-3xl flex items-center justify-center uppercase transition-all duration-150 border-2 ${
+                      state.currentGuess[i] 
                         ? '' 
-                        : 'bg-tile-empty/30 text-text-secondary/20 border-tile-border/50'}
-                    `}
+                        : 'bg-tile-empty/30 text-text-secondary/20 border-tile-border/50'
+                    }`}
                     style={state.currentGuess[i] ? (glowMode ? {
                       background: 'rgba(255, 0, 255, 0.2)',
                       color: '#ff00ff',
@@ -133,12 +117,10 @@ function GameContent() {
             </div>
           )}
 
-          {/* Keyboard */}
           <Keyboard />
         </div>
       </main>
 
-      {/* Background Pattern */}
       <div className="fixed inset-0 -z-10 bg-grid-pattern opacity-5 pointer-events-none" />
     </div>
   );

@@ -15,16 +15,11 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
   const { state } = useGame();
   const board = state.boards[boardIndex];
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      } else if (e.key === 'ArrowLeft') {
-        onNavigate(-1);
-      } else if (e.key === 'ArrowRight') {
-        onNavigate(1);
-      }
+      if (e.key === 'Escape') onClose();
+      else if (e.key === 'ArrowLeft') onNavigate(-1);
+      else if (e.key === 'ArrowRight') onNavigate(1);
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -48,7 +43,6 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
           className="relative bg-bg-secondary rounded-xl p-4 sm:p-6 max-w-md w-full mx-4 max-h-[85vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header - fixed */}
           <div className="flex items-center justify-between mb-4 shrink-0">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold text-accent">#{boardIndex + 1}</span>
@@ -73,12 +67,10 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
             </button>
           </div>
 
-          {/* Word Grid - scrollable */}
           <div className="flex-1 min-h-0 overflow-y-auto flex justify-center py-2">
             <WordGrid boardIndex={boardIndex} showCurrentGuess />
           </div>
 
-          {/* Navigation - fixed */}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10 shrink-0">
             <button
               onClick={() => onNavigate(-1)}
@@ -107,4 +99,3 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
     </AnimatePresence>
   );
 }
-

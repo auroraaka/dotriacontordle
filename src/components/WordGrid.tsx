@@ -23,16 +23,12 @@ export const WordGrid = memo(function WordGrid({
   const board = state.boards[boardIndex];
   const { guesses, currentGuess } = state;
 
-  // For mini mode, only show guesses that are relevant to this board
   const relevantGuesses = board.solved && board.solvedAtGuess !== null
     ? guesses.slice(0, board.solvedAtGuess + 1)
     : guesses;
 
-  const displayGuesses = maxRows
-    ? relevantGuesses.slice(-maxRows)
-    : relevantGuesses;
+  const displayGuesses = maxRows ? relevantGuesses.slice(-maxRows) : relevantGuesses;
 
-  // Determine status styling
   const statusClass = board.solved
     ? 'ring-2 ring-tile-correct/50'
     : state.gameStatus === 'lost'
@@ -40,14 +36,7 @@ export const WordGrid = memo(function WordGrid({
     : '';
 
   return (
-    <div
-      className={`
-        flex flex-col gap-0.5 p-1 rounded-lg bg-bg-tertiary/50
-        ${statusClass}
-        ${mini ? 'gap-px p-0.5' : 'gap-1 p-2'}
-      `}
-    >
-      {/* Submitted guesses */}
+    <div className={`flex flex-col gap-0.5 p-1 rounded-lg bg-bg-tertiary/50 ${statusClass} ${mini ? 'gap-px p-0.5' : 'gap-1 p-2'}`}>
       {displayGuesses.map((guess, guessIdx) => {
         const actualGuessIndex = maxRows
           ? relevantGuesses.length - displayGuesses.length + guessIdx
@@ -70,7 +59,6 @@ export const WordGrid = memo(function WordGrid({
         );
       })}
 
-      {/* Current guess row (only for non-mini, non-solved boards) */}
       {showCurrentGuess && !board.solved && state.gameStatus === 'playing' && (
         <div className={`flex ${mini ? 'gap-px' : 'gap-0.5'}`}>
           {Array.from({ length: WORD_LENGTH }).map((_, idx) => (
@@ -84,7 +72,6 @@ export const WordGrid = memo(function WordGrid({
         </div>
       )}
 
-      {/* Empty rows placeholder for consistent sizing in mini mode */}
       {mini && !board.solved && state.gameStatus === 'playing' && (
         <div className="flex gap-px">
           {Array.from({ length: WORD_LENGTH }).map((_, idx) => (
@@ -96,7 +83,6 @@ export const WordGrid = memo(function WordGrid({
   );
 });
 
-// Mini grid for the main game board view
 export const MiniWordGrid = memo(function MiniWordGrid({
   boardIndex,
   onClick,
@@ -124,18 +110,12 @@ export const MiniWordGrid = memo(function MiniWordGrid({
       onClick={onClick}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`
-        relative flex flex-col gap-0.5 sm:gap-1 p-1 sm:p-1.5 md:p-2 rounded-md lg:rounded-lg bg-bg-tertiary
-        cursor-pointer transition-all duration-200 h-full
-        ${statusClass}
-      `}
+      className={`relative flex flex-col gap-0.5 sm:gap-1 p-1 sm:p-1.5 md:p-2 rounded-md lg:rounded-lg bg-bg-tertiary cursor-pointer transition-all duration-200 h-full ${statusClass}`}
     >
-      {/* Board number */}
       <span className="absolute -top-1.5 -left-1.5 sm:-top-2 sm:-left-2 w-4 h-4 sm:w-5 sm:h-5 bg-bg-secondary rounded-full text-[8px] sm:text-[10px] flex items-center justify-center text-text-secondary font-bold z-10 border border-header-border">
         {boardIndex + 1}
       </span>
 
-      {/* Solved indicator */}
       {board.solved && (
         <motion.div
           initial={{ scale: 0 }}
@@ -177,9 +157,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
             </div>
           );
         })}
-
       </div>
     </motion.button>
   );
 });
-

@@ -29,13 +29,9 @@ export function Keyboard() {
   const handleKeyClick = (key: string) => {
     if (gameStatus !== 'playing') return;
 
-    if (key === 'ENTER') {
-      submitGuess();
-    } else if (key === 'BACKSPACE') {
-      removeLetter();
-    } else {
-      addLetter(key);
-    }
+    if (key === 'ENTER') submitGuess();
+    else if (key === 'BACKSPACE') removeLetter();
+    else addLetter(key);
   };
 
   return (
@@ -55,19 +51,12 @@ export function Keyboard() {
                   ${keyStateStyles[keyState]}
                   ${isSpecial ? 'px-2 sm:px-3 md:px-4 text-[10px] sm:text-xs' : 'flex-1 max-w-[44px] sm:max-w-[52px]'}
                   h-11 sm:h-12 md:h-14 rounded-md font-semibold text-white text-sm sm:text-base
-                  flex items-center justify-center
-                  transition-colors duration-150
+                  flex items-center justify-center transition-colors duration-150
                   cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
                 `}
                 disabled={gameStatus !== 'playing'}
               >
-                {key === 'BACKSPACE' ? (
-                  <BackspaceIcon />
-                ) : key === 'ENTER' ? (
-                  'ENTER'
-                ) : (
-                  key
-                )}
+                {key === 'BACKSPACE' ? <BackspaceIcon /> : key === 'ENTER' ? 'ENTER' : key}
               </motion.button>
             );
           })}
@@ -95,4 +84,3 @@ function BackspaceIcon() {
     </svg>
   );
 }
-

@@ -1,17 +1,7 @@
-/**
- * Answer generation module
- * 
- * IMPORTANT: Daily puzzles use the STATIC ANSWER_POOL below to ensure
- * all players get the same words on the same day.
- * 
- * Freeplay mode uses dynamically fetched words from the API for variety.
- */
-
-// Re-export for freeplay mode (dynamic API words)
 export { getRandomAnswers, initializeWordService } from './wordService';
 
-// Static answer pool - NEVER CHANGE THE ORDER, only append new words at the end!
-// This ensures daily puzzles remain consistent across all users and time.
+// Static answer pool for daily puzzles - ensures all players get the same words
+// IMPORTANT: Never change order, only append new words at the end
 export const ANSWER_POOL: string[] = [
   'ABROAD', 'ABSORB', 'ACCEPT', 'ACCESS', 'ACROSS', 'ACTION', 'ACTIVE', 'ACTUAL', 'ADVICE', 'AFFAIR',
   'AFFORD', 'AFRAID', 'AGENCY', 'ALMOST', 'ALWAYS', 'AMOUNT', 'ANIMAL', 'ANNUAL', 'ANSWER', 'ANYONE',
@@ -97,10 +87,6 @@ export const ANSWER_POOL: string[] = [
   'WOUNDS', 'WRITER', 'YEARLY', 'YELLOW', 'YOGURT', 'ZENITH', 'ZOMBIE',
 ];
 
-/**
- * Seeded random number generator (mulberry32)
- * Used to ensure consistent daily puzzles across all users
- */
 function seededRandom(seed: number): () => number {
   return function () {
     let t = seed += 0x6D2B79F5;
@@ -110,15 +96,10 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-/**
- * Get answers for DAILY puzzles using the STATIC answer pool
- * This ensures all players get the same words on the same day
- */
 export function getDailyAnswersFromPool(count: number, seed: number): string[] {
   const shuffled = [...ANSWER_POOL];
   const random = seededRandom(seed);
 
-  // Fisher-Yates shuffle with seeded random
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];

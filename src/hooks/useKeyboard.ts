@@ -18,35 +18,26 @@ export function useKeyboard({ onLetter, onEnter, onBackspace, onBoardSelect, dis
     (event: KeyboardEvent) => {
       if (disabled) return;
 
-      if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement
-      ) {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
       }
 
       const key = event.key;
 
-      // Handle number keys for board navigation
       if (onBoardSelect && key >= '0' && key <= '9') {
         event.preventDefault();
         
-        // Clear existing timeout
-        if (numberTimeout.current) {
-          clearTimeout(numberTimeout.current);
-        }
+        if (numberTimeout.current) clearTimeout(numberTimeout.current);
         
-        // Add to buffer
         numberBuffer.current += key;
         
-        // Set timeout to process the number
         numberTimeout.current = setTimeout(() => {
           const boardNumber = parseInt(numberBuffer.current, 10);
           if (boardNumber >= 1 && boardNumber <= 32) {
-            onBoardSelect(boardNumber - 1); // Convert to 0-indexed
+            onBoardSelect(boardNumber - 1);
           }
           numberBuffer.current = '';
-        }, 300); // 300ms window to type multi-digit numbers
+        }, 300);
         
         return;
       }
@@ -71,10 +62,7 @@ export function useKeyboard({ onLetter, onEnter, onBackspace, onBoardSelect, dis
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      if (numberTimeout.current) {
-        clearTimeout(numberTimeout.current);
-      }
+      if (numberTimeout.current) clearTimeout(numberTimeout.current);
     };
   }, [handleKeyDown]);
 }
-

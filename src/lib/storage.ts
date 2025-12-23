@@ -1,4 +1,4 @@
-import { GameState, GameStats, GameSettings, BoardState, NUM_BOARDS, MAX_GUESSES } from '@/types/game';
+import { GameState, GameStats, GameSettings, BoardState, MAX_GUESSES } from '@/types/game';
 
 const STORAGE_KEYS = {
   DAILY_STATE: 'dotriacontordle_daily_state',
@@ -7,7 +7,6 @@ const STORAGE_KEYS = {
   SETTINGS: 'dotriacontordle_settings',
 } as const;
 
-// Default values
 const DEFAULT_STATS: GameStats = {
   gamesPlayed: 0,
   gamesWon: 0,
@@ -23,9 +22,6 @@ const DEFAULT_SETTINGS: GameSettings = {
   glowMode: false,
 };
 
-/**
- * Check if localStorage is available
- */
 function isStorageAvailable(): boolean {
   if (typeof window === 'undefined') return false;
   try {
@@ -38,18 +34,11 @@ function isStorageAvailable(): boolean {
   }
 }
 
-/**
- * Save game state to localStorage
- */
 export function saveGameState(state: GameState, mode: 'daily' | 'free'): void {
   if (!isStorageAvailable()) return;
   
   const key = mode === 'daily' ? STORAGE_KEYS.DAILY_STATE : STORAGE_KEYS.FREE_STATE;
-  const stateToSave = {
-    ...state,
-    // Only save essential data for daily mode
-    savedAt: Date.now(),
-  };
+  const stateToSave = { ...state, savedAt: Date.now() };
   
   try {
     localStorage.setItem(key, JSON.stringify(stateToSave));
@@ -58,9 +47,6 @@ export function saveGameState(state: GameState, mode: 'daily' | 'free'): void {
   }
 }
 
-/**
- * Load game state from localStorage
- */
 export function loadGameState(mode: 'daily' | 'free', currentDailyNumber?: number): GameState | null {
   if (!isStorageAvailable()) return null;
   
@@ -72,10 +58,8 @@ export function loadGameState(mode: 'daily' | 'free', currentDailyNumber?: numbe
     
     const state = JSON.parse(saved) as GameState & { savedAt?: number };
     
-    // For daily mode, check if it's still the same day
     if (mode === 'daily' && currentDailyNumber !== undefined) {
       if (state.dailyNumber !== currentDailyNumber) {
-        // It's a new day, clear the old state
         localStorage.removeItem(key);
         return null;
       }
@@ -88,19 +72,6 @@ export function loadGameState(mode: 'daily' | 'free', currentDailyNumber?: numbe
   }
 }
 
-/**
- * Clear game state
- */
-export function clearGameState(mode: 'daily' | 'free'): void {
-  if (!isStorageAvailable()) return;
-  
-  const key = mode === 'daily' ? STORAGE_KEYS.DAILY_STATE : STORAGE_KEYS.FREE_STATE;
-  localStorage.removeItem(key);
-}
-
-/**
- * Load statistics
- */
 export function loadStats(): GameStats {
   if (!isStorageAvailable()) return DEFAULT_STATS;
   
@@ -109,7 +80,6 @@ export function loadStats(): GameStats {
     if (!saved) return DEFAULT_STATS;
     
     const stats = JSON.parse(saved) as GameStats;
-    // Ensure guessDistribution has the right length
     if (stats.guessDistribution.length !== MAX_GUESSES) {
       stats.guessDistribution = new Array(MAX_GUESSES).fill(0);
     }
@@ -120,9 +90,6 @@ export function loadStats(): GameStats {
   }
 }
 
-/**
- * Save statistics
- */
 export function saveStats(stats: GameStats): void {
   if (!isStorageAvailable()) return;
   
@@ -133,9 +100,6 @@ export function saveStats(stats: GameStats): void {
   }
 }
 
-/**
- * Update stats after a game ends
- */
 export function updateStatsAfterGame(
   won: boolean,
   guessesUsed: number,
@@ -150,7 +114,6 @@ export function updateStatsAfterGame(
     stats.currentStreak++;
     stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
     
-    // Update guess distribution (0-indexed)
     if (guessesUsed > 0 && guessesUsed <= MAX_GUESSES) {
       stats.guessDistribution[guessesUsed - 1]++;
     }
@@ -169,9 +132,6 @@ export function updateStatsAfterGame(
   return stats;
 }
 
-/**
- * Load settings
- */
 export function loadSettings(): GameSettings {
   if (!isStorageAvailable()) return DEFAULT_SETTINGS;
   
@@ -185,9 +145,6 @@ export function loadSettings(): GameSettings {
   }
 }
 
-/**
- * Save settings
- */
 export function saveSettings(settings: GameSettings): void {
   if (!isStorageAvailable()) return;
   
@@ -198,9 +155,6 @@ export function saveSettings(settings: GameSettings): void {
   }
 }
 
-/**
- * Create initial board states from answers
- */
 export function createInitialBoards(answers: string[]): BoardState[] {
   return answers.map(answer => ({
     answer,
@@ -208,4 +162,3 @@ export function createInitialBoards(answers: string[]): BoardState[] {
     solvedAtGuess: null,
   }));
 }
-
