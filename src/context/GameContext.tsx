@@ -233,7 +233,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     try {
       const valid = await isValidWord(state.currentGuess);
       if (!valid) {
-        setError('Not in word list');
+        setError('Not a word');
         return;
       }
       setError(null);

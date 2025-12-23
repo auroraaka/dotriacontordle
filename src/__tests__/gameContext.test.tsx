@@ -166,7 +166,7 @@ describe('Game input mechanics', () => {
       });
 
       expect(screen.getByTestId('guesses').textContent).toBe('');
-      expect(screen.getByTestId('error').textContent).toBe('Not in word list');
+      expect(screen.getByTestId('error').textContent).toBe('Not a word');
     });
   });
 

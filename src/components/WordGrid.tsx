@@ -110,7 +110,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
       onClick={onClick}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`relative flex flex-col gap-px sm:gap-0.5 md:gap-1 p-0.5 sm:p-1 md:p-1.5 lg:p-2 rounded-md lg:rounded-lg bg-bg-tertiary cursor-pointer transition-all duration-200 h-full min-w-0 overflow-hidden ${statusClass}`}
+      className={`relative flex flex-col gap-px sm:gap-0.5 md:gap-1 p-0.5 sm:p-1 md:p-1.5 lg:p-2 rounded-md lg:rounded-lg bg-bg-tertiary cursor-pointer transition-all duration-200 h-full min-w-0 ${statusClass}`}
     >
       <span className="absolute -top-1 -left-1 sm:-top-1.5 sm:-left-1.5 md:-top-2 md:-left-2 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 bg-bg-secondary rounded-full text-[7px] sm:text-[8px] md:text-[10px] flex items-center justify-center text-text-secondary font-bold z-10 border border-header-border">
         {boardIndex + 1}
