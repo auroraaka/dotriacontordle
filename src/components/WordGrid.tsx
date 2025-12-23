@@ -61,9 +61,9 @@ export const WordGrid = memo(function WordGrid({
                 key={letterIdx}
                 letter={letter}
                 state={evaluation[letterIdx]}
-                delay={mini ? 0 : letterIdx * 0.1}
+                delay={0}
                 size={mini ? 'mini' : 'normal'}
-                animate={!mini}
+                animate={false}
               />
             ))}
           </div>

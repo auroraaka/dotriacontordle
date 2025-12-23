@@ -39,16 +39,16 @@ export function Tile({ letter, state, delay = 0, size = 'normal', animate = true
       initial={shouldAnimate ? { rotateX: 0 } : false}
       animate={shouldAnimate ? { rotateX: 360 } : false}
       transition={{
-        duration: 0.5,
+        duration: 0.3,
         delay: delay,
-        ease: 'easeInOut',
+        ease: 'easeOut',
       }}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.span
         initial={shouldAnimate ? { opacity: 0 } : false}
         animate={shouldAnimate ? { opacity: 1 } : false}
-        transition={{ duration: 0.1, delay: delay + 0.25 }}
+        transition={{ duration: 0.05, delay: delay + 0.07 }}
       >
         {letter}
       </motion.span>
