@@ -19,11 +19,19 @@ export const metadata: Metadata = {
   description: "The ultimate word puzzle challenge! Guess 32 six-letter words in 37 tries. A Wordle variant for true puzzle enthusiasts.",
   keywords: ["wordle", "word game", "puzzle", "dotriacontordle", "32 words", "word puzzle"],
   authors: [{ name: "Dotriacontordle" }],
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "48x48" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "Dotriacontordle - 32 Word Puzzle Game",
     description: "The ultimate word puzzle challenge! Guess 32 six-letter words in 37 tries.",
     type: "website",
     url: "https://dotriacontordle.com",
+    images: ["/logo.svg"],
   },
   twitter: {
     card: "summary_large_image",
