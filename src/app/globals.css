@@ -271,3 +271,12 @@ a {
 .glow-mode .text-accent {
   text-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
 }
+
+/* Glow mode current guess tiles */
+.glow-mode .current-guess-tile-filled {
+  background: rgba(255, 0, 255, 0.2) !important;
+  color: #ff00ff !important;
+  border-color: #ff00ff !important;
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.5), 0 0 40px rgba(255, 0, 255, 0.2), inset 0 0 15px rgba(255, 0, 255, 0.1) !important;
+  text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+}

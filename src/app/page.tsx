@@ -12,15 +12,29 @@ import { loadSettings } from '@/lib/storage';
 function GameContent() {
   const { state, error, isLoadingWords } = useGame();
   const [showError, setShowError] = useState(false);
+  const [glowMode, setGlowMode] = useState(false);
 
   // Initialize glow mode from settings on load
   useEffect(() => {
     const settings = loadSettings();
+    setGlowMode(settings.glowMode);
     if (settings.glowMode) {
       document.body.classList.add('glow-mode');
     } else {
       document.body.classList.remove('glow-mode');
     }
+  }, []);
+
+  // Listen for glow mode changes
+  useEffect(() => {
+    const handleGlowModeChange = () => {
+      const settings = loadSettings();
+      setGlowMode(settings.glowMode);
+    };
+    
+    // Check for changes periodically (settings modal updates localStorage)
+    const interval = setInterval(handleGlowModeChange, 100);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -94,11 +108,23 @@ function GameContent() {
                     className={`
                       w-10 h-12 sm:w-12 sm:h-14 rounded-lg font-bold text-2xl sm:text-3xl
                       flex items-center justify-center uppercase
-                      transition-all duration-150
+                      transition-all duration-150 border-2
                       ${state.currentGuess[i] 
-                        ? 'bg-cyan-500/20 text-cyan-400 border-2 border-cyan-400 shadow-[0_0_15px_rgba(0,255,255,0.3)]' 
-                        : 'bg-tile-empty/30 text-text-secondary/20 border border-tile-border/50'}
+                        ? '' 
+                        : 'bg-tile-empty/30 text-text-secondary/20 border-tile-border/50'}
                     `}
+                    style={state.currentGuess[i] ? (glowMode ? {
+                      background: 'rgba(255, 0, 255, 0.2)',
+                      color: '#ff00ff',
+                      borderColor: '#ff00ff',
+                      boxShadow: '0 0 20px rgba(255, 0, 255, 0.5), 0 0 40px rgba(255, 0, 255, 0.2), inset 0 0 15px rgba(255, 0, 255, 0.1)',
+                      textShadow: '0 0 10px rgba(255, 0, 255, 0.8)',
+                    } : {
+                      background: 'rgba(6, 182, 212, 0.2)',
+                      color: 'rgb(34, 211, 238)',
+                      borderColor: 'rgb(34, 211, 238)',
+                      boxShadow: '0 0 15px rgba(0, 255, 255, 0.3)',
+                    }) : undefined}
                   >
                     {state.currentGuess[i] || ''}
                   </div>

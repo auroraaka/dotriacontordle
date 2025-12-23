@@ -173,13 +173,23 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     
     async function init() {
       setIsLoadingWords(true);
+      const startTime = Date.now();
+      const MIN_LOADING_TIME = 2500;
+      
       try {
         await initializeWordService();
       } catch (e) {
         console.error('Failed to initialize word service:', e);
       } finally {
         if (mounted) {
-          setIsLoadingWords(false);
+          const elapsed = Date.now() - startTime;
+          const remainingTime = Math.max(0, MIN_LOADING_TIME - elapsed);
+          
+          setTimeout(() => {
+            if (mounted) {
+              setIsLoadingWords(false);
+            }
+          }, remainingTime);
         }
       }
     }
