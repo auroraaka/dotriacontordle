@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { Delete } from 'lucide-react';
 import { TileState, KEYBOARD_ROWS } from '@/types/game';
 import { useGame } from '@/context/GameContext';
 import { useKeyboard } from '@/hooks/useKeyboard';
@@ -56,31 +57,12 @@ export function Keyboard() {
                 `}
                 disabled={gameStatus !== 'playing'}
               >
-                {key === 'BACKSPACE' ? <BackspaceIcon /> : key === 'ENTER' ? 'ENTER' : key}
+                {key === 'BACKSPACE' ? <Delete className="w-5 h-5" /> : key === 'ENTER' ? 'ENTER' : key}
               </motion.button>
             );
           })}
         </div>
       ))}
     </div>
-  );
-}
-
-function BackspaceIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="w-5 h-5"
-    >
-      <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
-      <line x1="18" y1="9" x2="12" y2="15" />
-      <line x1="12" y1="9" x2="18" y2="15" />
-    </svg>
   );
 }

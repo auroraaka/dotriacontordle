@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'motion/react';
+import { X, Share2 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { formatTimeUntilNextDaily } from '@/lib/daily';
 import { useEffect, useState } from 'react';
@@ -50,9 +51,7 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Statistics</h2>
             <button onClick={onClose} className="p-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-5 h-5" />
             </button>
           </div>
 
@@ -105,7 +104,7 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
                 onClick={() => shareResults(state)}
                 className="w-full py-3 bg-tile-correct hover:bg-tile-correct/80 rounded-md font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                <ShareIcon />
+                <Share2 className="w-5 h-5" />
                 Share
               </button>
             </div>
@@ -122,14 +121,6 @@ function StatBox({ value, label }: { value: number; label: string }) {
       <div className="text-3xl font-bold">{value}</div>
       <div className="text-xs text-text-secondary">{label}</div>
     </div>
-  );
-}
-
-function ShareIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-    </svg>
   );
 }
 
