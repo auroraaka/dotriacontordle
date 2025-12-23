@@ -1,65 +1,121 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { GameProvider, useGame } from '@/context/GameContext';
+import { Header } from '@/components/Header';
+import { GameBoard } from '@/components/GameBoard';
+import { Keyboard } from '@/components/Keyboard';
+import { loadSettings } from '@/lib/storage';
+
+function GameContent() {
+  const { state, error } = useGame();
+  const [showError, setShowError] = useState(false);
+
+  // Initialize glow mode from settings on load
+  useEffect(() => {
+    const settings = loadSettings();
+    if (settings.glowMode) {
+      document.body.classList.add('glow-mode');
+    } else {
+      document.body.classList.remove('glow-mode');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (error) {
+      setShowError(true);
+      const timer = setTimeout(() => setShowError(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  return (
+    <div className="h-screen flex flex-col bg-bg-primary overflow-hidden">
+      <Header />
+
+      {/* Error Toast */}
+      <AnimatePresence>
+        {showError && error && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-red-500 text-white rounded-md font-medium shadow-lg"
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Game Over Banner */}
+      <AnimatePresence>
+        {state.gameStatus !== 'playing' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className={`
+              w-full py-2 text-center font-bold text-base shrink-0
+              ${state.gameStatus === 'won' ? 'bg-tile-correct/20 text-tile-correct' : 'bg-red-500/20 text-red-400'}
+            `}
+          >
+            {state.gameStatus === 'won' ? (
+              <>🎉 Congratulations! You solved all 32 words in {state.guesses.length} guesses!</>
+            ) : (
+              <>Game Over - You solved {state.boards.filter(b => b.solved).length}/32 words</>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Game Area - fills remaining space */}
+      <main className="flex-1 flex flex-col min-h-0">
+        {/* Game Board - takes up available space */}
+        <div className="flex-1 min-h-0 flex items-center justify-center p-2 sm:p-4">
+          <GameBoard />
+        </div>
+
+        {/* Bottom Section - fixed height */}
+        <div className="shrink-0 pb-2 sm:pb-4 px-2 sm:px-4">
+          {/* Current Guess Display */}
+          {state.gameStatus === 'playing' && (
+            <div className="flex justify-center mb-3">
+              <div className="flex gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl bg-bg-tertiary/60 backdrop-blur-sm border border-white/5">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`
+                      w-10 h-12 sm:w-12 sm:h-14 rounded-lg font-bold text-2xl sm:text-3xl
+                      flex items-center justify-center uppercase
+                      transition-all duration-150
+                      ${state.currentGuess[i] 
+                        ? 'bg-cyan-500/20 text-cyan-400 border-2 border-cyan-400 shadow-[0_0_15px_rgba(0,255,255,0.3)]' 
+                        : 'bg-tile-empty/30 text-text-secondary/20 border border-tile-border/50'}
+                    `}
+                  >
+                    {state.currentGuess[i] || ''}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Keyboard */}
+          <Keyboard />
+        </div>
+      </main>
+
+      {/* Background Pattern */}
+      <div className="fixed inset-0 -z-10 bg-grid-pattern opacity-5 pointer-events-none" />
+    </div>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <GameProvider>
+      <GameContent />
+    </GameProvider>
   );
 }
