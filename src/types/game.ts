@@ -28,7 +28,6 @@ export interface GameStats {
 }
 
 export interface GameSettings {
-  hardMode: boolean;
   glowMode: boolean;
 }
 

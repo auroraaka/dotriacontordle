@@ -18,7 +18,6 @@ const DEFAULT_STATS: GameStats = {
 };
 
 const DEFAULT_SETTINGS: GameSettings = {
-  hardMode: false,
   glowMode: false,
 };
 

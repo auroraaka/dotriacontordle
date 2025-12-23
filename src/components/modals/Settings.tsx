@@ -61,12 +61,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
           <div className="space-y-4">
             <SettingRow
-              title="Hard Mode"
-              description="Any revealed hints must be used in subsequent guesses"
-              enabled={settings.hardMode}
-              onChange={(enabled) => updateSetting('hardMode', enabled)}
-            />
-            <SettingRow
               title="Glow Mode"
               description="Inverted neon color theme with enhanced glow effects"
               enabled={settings.glowMode}
