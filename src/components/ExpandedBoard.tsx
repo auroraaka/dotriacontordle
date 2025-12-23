@@ -30,6 +30,8 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
   const [glowMode, setGlowMode] = useState(false);
   const [showError, setShowError] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const prevGuessesLenRef = useRef<number>(state.guesses.length);
+  const prevBoardIndexRef = useRef<number>(boardIndex);
 
   useEffect(() => {
     const settings = loadSettings();
@@ -56,10 +58,22 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
   }, [onClose, onNavigate]);
 
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-    }
-  }, [boardIndex]);
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const prevLen = prevGuessesLenRef.current;
+    const nextLen = state.guesses.length;
+    const boardChanged = prevBoardIndexRef.current !== boardIndex;
+    const guessJustCommitted = nextLen > prevLen;
+
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: boardChanged ? 'auto' : guessJustCommitted ? 'smooth' : 'auto',
+    });
+
+    prevGuessesLenRef.current = nextLen;
+    prevBoardIndexRef.current = boardIndex;
+  }, [boardIndex, state.guesses.length]);
 
   const handleKeyClick = (key: string) => {
     if (gameStatus !== 'playing') return;
