@@ -53,6 +53,8 @@
 
   --shadow-glow-green: var(--glow-green);
   --shadow-glow-accent: var(--glow-accent);
+
+  --breakpoint-xs: 375px;
 }
 
 * {
