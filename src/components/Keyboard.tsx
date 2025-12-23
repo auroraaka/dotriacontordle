@@ -15,14 +15,14 @@ const keyStateStyles: Record<TileState | 'default', string> = {
 };
 
 export function Keyboard() {
-  const { state, addLetter, removeLetter, submitGuess } = useGame();
+  const { state, addLetter, removeLetter, submitGuess, setExpandedBoard } = useGame();
   const { keyboardState, gameStatus } = state;
 
-  // Physical keyboard support
   useKeyboard({
     onLetter: addLetter,
     onEnter: submitGuess,
     onBackspace: removeLetter,
+    onBoardSelect: setExpandedBoard,
     disabled: gameStatus !== 'playing',
   });
 
