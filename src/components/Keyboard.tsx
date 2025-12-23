@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { Delete } from 'lucide-react';
+import { Delete, CornerDownLeft } from 'lucide-react';
 import { TileState, KEYBOARD_ROWS } from '@/types/game';
 import { useGame } from '@/context/GameContext';
 import { useKeyboard } from '@/hooks/useKeyboard';
@@ -57,7 +57,7 @@ export function Keyboard() {
                 `}
                 disabled={gameStatus !== 'playing'}
               >
-                {key === 'BACKSPACE' ? <Delete className="w-5 h-5" /> : key === 'ENTER' ? 'ENTER' : key}
+                {key === 'BACKSPACE' ? <Delete className="w-5 h-5" /> : key === 'ENTER' ? <CornerDownLeft className="w-5 h-5" /> : key}
               </motion.button>
             );
           })}

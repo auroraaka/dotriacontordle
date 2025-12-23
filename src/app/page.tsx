@@ -87,7 +87,7 @@ function GameContent() {
 
         <div className="shrink-0 pb-2 sm:pb-4 px-2 sm:px-4">
           {state.gameStatus === 'playing' && (
-            <div className="flex justify-center mb-3">
+            <div className="flex justify-center mb-4 sm:mb-5 mt-4 sm:mt-5">
               <div className="flex gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl bg-bg-tertiary/60 backdrop-blur-sm border border-white/5">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
