@@ -87,6 +87,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'SUBMIT_GUESS': {
       if (state.gameStatus !== 'playing') return state;
       if (state.currentGuess.length !== WORD_LENGTH) return state;
+      if (state.guesses.includes(state.currentGuess)) return state;
 
       const newGuesses = [...state.guesses, state.currentGuess];
       const guessIndex = newGuesses.length - 1;
@@ -222,6 +223,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       setError('Not enough letters');
       return;
     }
+
+    if (state.guesses.includes(state.currentGuess)) {
+      setError('Already guessed');
+      return;
+    }
     
     setIsValidating(true);
     try {
@@ -238,7 +244,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsValidating(false);
     }
-  }, [state.currentGuess]);
+  }, [state.currentGuess, state.guesses]);
 
   const setExpandedBoard = useCallback((boardIndex: number | null) => {
     dispatch({ type: 'SET_EXPANDED_BOARD', boardIndex });
