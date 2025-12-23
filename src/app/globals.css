@@ -19,12 +19,10 @@
   --text-secondary: #a1a1aa;
 
   --accent: #06b6d4;
-  --accent-glow: rgba(6, 182, 212, 0.4);
 
   --header-border: #2a2a3a;
 
   --glow-green: 0 0 20px rgba(34, 197, 94, 0.5);
-  --glow-accent: 0 0 20px rgba(6, 182, 212, 0.5);
 }
 
 @theme inline {
@@ -52,7 +50,6 @@
   --font-mono: var(--font-mono), ui-monospace, monospace;
 
   --shadow-glow-green: var(--glow-green);
-  --shadow-glow-accent: var(--glow-accent);
 
   --breakpoint-xs: 375px;
 }
@@ -109,40 +106,6 @@ body {
   box-shadow: var(--glow-green);
 }
 
-.shadow-glow-accent {
-  box-shadow: var(--glow-accent);
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-  20%, 40%, 60%, 80% { transform: translateX(4px); }
-}
-
-.animate-shake {
-  animation: shake 0.5s ease-in-out;
-}
-
-@keyframes bounce-in {
-  0% { transform: scale(0.8); opacity: 0; }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.animate-bounce-in {
-  animation: bounce-in 0.3s ease-out;
-}
-
-@keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
-
-.animate-pop {
-  animation: pop 0.1s ease-in-out;
-}
-
 .text-gradient {
   background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
   -webkit-background-clip: text;
@@ -162,34 +125,12 @@ a {
   cursor: pointer;
 }
 
-@media (max-width: 640px) {
-  .tile-mobile {
-    width: 2.25rem;
-    height: 2.25rem;
-    font-size: 1rem;
-  }
-}
-
 @media screen and (max-width: 768px) {
   input,
   select,
   textarea {
     font-size: 16px !important;
   }
-}
-
-.modal-backdrop {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 5px var(--accent); }
-  50% { box-shadow: 0 0 20px var(--accent); }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
 }
 
 .glow-mode {
@@ -211,12 +152,10 @@ a {
   --text-secondary: #a5b4fc;
 
   --accent: #ff00ff;
-  --accent-glow: rgba(255, 0, 255, 0.6);
 
   --header-border: #4a4a6a;
 
   --glow-green: 0 0 30px rgba(0, 255, 136, 0.8), 0 0 60px rgba(0, 255, 136, 0.4);
-  --glow-accent: 0 0 30px rgba(255, 0, 255, 0.8), 0 0 60px rgba(255, 0, 255, 0.4);
 }
 
 .glow-mode .bg-tile-correct {
@@ -233,12 +172,4 @@ a {
 
 .glow-mode .text-accent {
   text-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
-}
-
-.glow-mode .current-guess-tile-filled {
-  background: rgba(255, 0, 255, 0.2) !important;
-  color: #ff00ff !important;
-  border-color: #ff00ff !important;
-  box-shadow: 0 0 20px rgba(255, 0, 255, 0.5), 0 0 40px rgba(255, 0, 255, 0.2), inset 0 0 15px rgba(255, 0, 255, 0.1) !important;
-  text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
 }
