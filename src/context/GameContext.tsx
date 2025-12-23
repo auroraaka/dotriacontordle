@@ -174,7 +174,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     async function init() {
       setIsLoadingWords(true);
       const startTime = Date.now();
-      const MIN_LOADING_TIME = 2500;
+      const MIN_LOADING_TIME = 2000;
       
       try {
         await initializeWordService();

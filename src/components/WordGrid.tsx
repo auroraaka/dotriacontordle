@@ -108,11 +108,10 @@ export const MiniWordGrid = memo(function MiniWordGrid({
   const board = state.boards[boardIndex];
   const { guesses } = state;
 
-  // Show last 6 guesses for mini view
   const relevantGuesses = board.solved && board.solvedAtGuess !== null
     ? guesses.slice(0, board.solvedAtGuess + 1)
     : guesses;
-  const displayGuesses = relevantGuesses.slice(-6);
+  const displayGuesses = relevantGuesses.slice(-3);
 
   const statusClass = board.solved
     ? 'ring-2 ring-tile-correct shadow-glow-green'
@@ -147,8 +146,14 @@ export const MiniWordGrid = memo(function MiniWordGrid({
         </motion.div>
       )}
 
-      {/* Mini tiles - responsive sizing, overflow hidden to contain tiles */}
-      <div className="flex flex-col gap-0.5 sm:gap-1 flex-1 justify-end overflow-hidden rounded-sm">
+      <div className="flex flex-col gap-0.5 sm:gap-1 flex-1 justify-center overflow-hidden rounded-sm">
+        {displayGuesses.length < 3 && Array.from({ length: 3 - displayGuesses.length }).map((_, rowIdx) => (
+          <div key={`empty-${rowIdx}`} className="flex gap-0.5 sm:gap-1 justify-center">
+            {Array.from({ length: WORD_LENGTH }).map((_, colIdx) => (
+              <div key={colIdx} className="aspect-square w-[10px] sm:w-3.5 md:w-4 lg:w-5 rounded-sm bg-tile-empty" />
+            ))}
+          </div>
+        ))}
         {displayGuesses.map((guess, guessIdx) => {
           const actualGuessIndex = relevantGuesses.length - displayGuesses.length + guessIdx;
           const evaluation = getEvaluationForBoard(boardIndex, actualGuessIndex);
@@ -173,18 +178,6 @@ export const MiniWordGrid = memo(function MiniWordGrid({
           );
         })}
 
-        {/* Empty state */}
-        {displayGuesses.length === 0 && (
-          <>
-            {Array.from({ length: 3 }).map((_, rowIdx) => (
-              <div key={rowIdx} className="flex gap-0.5 sm:gap-1 justify-center">
-                {Array.from({ length: WORD_LENGTH }).map((_, colIdx) => (
-                  <div key={colIdx} className="aspect-square w-[10px] sm:w-3.5 md:w-4 lg:w-5 rounded-sm bg-tile-empty" />
-                ))}
-              </div>
-            ))}
-          </>
-        )}
       </div>
     </motion.button>
   );
