@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Tile, TileWithPop } from './Tile';
 import { useGame } from '@/context/GameContext';
@@ -103,7 +103,79 @@ export const MiniWordGrid = memo(function MiniWordGrid({
   const relevantGuesses = board.solved && board.solvedAtGuess !== null
     ? guesses.slice(0, board.solvedAtGuess + 1)
     : guesses;
-  const displayGuesses = relevantGuesses.slice(-3);
+
+  const gridContainerRef = useRef<HTMLDivElement>(null);
+  const [miniLayout, setMiniLayout] = useState(() => ({
+    rowsToShow: 3,
+    tilePx: 8,
+    gapPx: 1,
+    fontPx: 5,
+    radiusPx: 2,
+  }));
+
+  useEffect(() => {
+    const el = gridContainerRef.current;
+    if (!el) return;
+
+    const computeLayout = (width: number, height: number) => {
+      const cols = WORD_LENGTH;
+      const minRows = 3;
+      const maxRowsCap = 5;
+      const desiredMaxRows = Math.min(maxRowsCap, Math.max(minRows, relevantGuesses.length));
+
+      const computeForRows = (rows: number) => {
+        const baseCell = Math.min(width / cols, height / rows);
+        const gapPx = Math.max(1, Math.min(6, Math.floor(baseCell * 0.12)));
+
+        const tileW = (width - gapPx * (cols - 1)) / cols;
+        const tileH = (height - gapPx * (rows - 1)) / rows;
+        const tilePx = Math.max(4, Math.floor(Math.min(tileW, tileH)));
+
+        const fontPx = Math.max(4, Math.min(14, Math.floor(tilePx * 0.55)));
+        const radiusPx = Math.max(2, Math.min(8, Math.floor(tilePx * 0.2)));
+
+        return { rowsToShow: rows, tilePx, gapPx, fontPx, radiusPx };
+      };
+
+      const minReadableTilePx = 6;
+      for (let rows = desiredMaxRows; rows >= minRows; rows--) {
+        const candidate = computeForRows(rows);
+        if (candidate.tilePx >= minReadableTilePx) return candidate;
+      }
+
+      return computeForRows(minRows);
+    };
+
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      const { width, height } = entry.contentRect;
+      if (width <= 0 || height <= 0) return;
+      setMiniLayout((prev) => {
+        const next = computeLayout(width, height);
+        if (
+          prev.rowsToShow === next.rowsToShow &&
+          prev.tilePx === next.tilePx &&
+          prev.gapPx === next.gapPx &&
+          prev.fontPx === next.fontPx &&
+          prev.radiusPx === next.radiusPx
+        ) {
+          return prev;
+        }
+        return next;
+      });
+    });
+
+    const rect = el.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      setMiniLayout(computeLayout(rect.width, rect.height));
+    }
+
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [relevantGuesses.length]);
+
+  const displayGuesses = relevantGuesses.slice(-miniLayout.rowsToShow);
 
   const statusClass = board.solved
     ? 'ring-2 ring-tile-correct shadow-glow-green'
@@ -132,30 +204,66 @@ export const MiniWordGrid = memo(function MiniWordGrid({
         </motion.div>
       )}
 
-      <div className="flex flex-col gap-px sm:gap-0.5 md:gap-1 flex-1 justify-center overflow-hidden rounded-sm min-w-0">
-        {displayGuesses.length < 3 && Array.from({ length: 3 - displayGuesses.length }).map((_, rowIdx) => (
-          <div key={`empty-${rowIdx}`} className="flex gap-px sm:gap-0.5 md:gap-1 justify-center">
-            {Array.from({ length: WORD_LENGTH }).map((_, colIdx) => (
-              <div key={colIdx} className="aspect-square w-[7px] xs:w-2 sm:w-3 md:w-3.5 lg:w-5 rounded-[2px] sm:rounded-sm bg-tile-empty flex-shrink-0" />
-            ))}
-          </div>
-        ))}
+      <div
+        ref={gridContainerRef}
+        className="flex flex-col flex-1 min-h-0 overflow-hidden rounded-sm min-w-0 w-full justify-end"
+        style={{ gap: `${miniLayout.gapPx}px` }}
+      >
+        {displayGuesses.length < 3 &&
+          Array.from({ length: 3 - displayGuesses.length }).map((_, rowIdx) => (
+            <div
+              key={`empty-${rowIdx}`}
+              className="grid w-full"
+              style={{
+                gridTemplateColumns: `repeat(${WORD_LENGTH}, minmax(0, 1fr))`,
+                gap: `${miniLayout.gapPx}px`,
+              }}
+            >
+              {Array.from({ length: WORD_LENGTH }).map((_, colIdx) => (
+                <div
+                  key={colIdx}
+                  className="bg-tile-empty"
+                  style={{
+                    width: `${miniLayout.tilePx}px`,
+                    height: `${miniLayout.tilePx}px`,
+                    borderRadius: `${miniLayout.radiusPx}px`,
+                    justifySelf: 'center',
+                  }}
+                />
+              ))}
+            </div>
+          ))}
         {displayGuesses.map((guess, guessIdx) => {
           const actualGuessIndex = relevantGuesses.length - displayGuesses.length + guessIdx;
           const evaluation = getEvaluationForBoard(boardIndex, actualGuessIndex);
 
           return (
-            <div key={guessIdx} className="flex gap-px sm:gap-0.5 md:gap-1 justify-center">
+            <div
+              key={guessIdx}
+              className="grid w-full"
+              style={{
+                gridTemplateColumns: `repeat(${WORD_LENGTH}, minmax(0, 1fr))`,
+                gap: `${miniLayout.gapPx}px`,
+              }}
+            >
               {guess.split('').map((letter, letterIdx) => (
                 <div
                   key={letterIdx}
                   className={`
-                    aspect-square w-[7px] xs:w-2 sm:w-3 md:w-3.5 lg:w-5 rounded-[2px] sm:rounded-sm text-[4px] xs:text-[5px] sm:text-[6px] md:text-[8px] lg:text-[10px] font-bold flex items-center justify-center uppercase flex-shrink-0
+                    font-bold flex items-center justify-center uppercase
                     ${evaluation[letterIdx] === 'correct' ? 'bg-tile-correct text-white' : ''}
                     ${evaluation[letterIdx] === 'present' ? 'bg-tile-present text-white' : ''}
                     ${evaluation[letterIdx] === 'absent' ? 'bg-tile-absent text-white/70' : ''}
                     ${evaluation[letterIdx] === 'empty' ? 'bg-tile-empty' : ''}
                   `}
+                  style={{
+                    width: `${miniLayout.tilePx}px`,
+                    height: `${miniLayout.tilePx}px`,
+                    borderRadius: `${miniLayout.radiusPx}px`,
+                    fontSize: `${miniLayout.fontPx}px`,
+                    justifySelf: 'center',
+                    lineHeight: 1,
+                  }}
                 >
                   {letter}
                 </div>
