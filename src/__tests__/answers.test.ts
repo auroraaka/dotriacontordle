@@ -1,20 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { ANSWER_POOL, getDailyAnswersFromPool } from '@/lib/answers';
+import { WORD_POOL, getDailyAnswersFromPool } from '@/lib/answers';
 
-describe('ANSWER_POOL', () => {
+describe('WORD_POOL', () => {
   it('contains at least 400 words for variety', () => {
-    expect(ANSWER_POOL.length).toBeGreaterThanOrEqual(400);
+    expect(WORD_POOL.length).toBeGreaterThanOrEqual(400);
   });
 
   it('contains only 6-letter uppercase words', () => {
-    ANSWER_POOL.forEach(word => {
+    WORD_POOL.forEach(word => {
       expect(word).toMatch(/^[A-Z]{6}$/);
     });
   });
 
   it('contains no duplicates', () => {
-    const uniqueWords = new Set(ANSWER_POOL);
-    expect(uniqueWords.size).toBe(ANSWER_POOL.length);
+    const uniqueWords = new Set(WORD_POOL);
+    expect(uniqueWords.size).toBe(WORD_POOL.length);
   });
 });
 
@@ -39,7 +39,7 @@ describe('getDailyAnswersFromPool', () => {
   it('returns words from the answer pool', () => {
     const answers = getDailyAnswersFromPool(32, 54321);
     answers.forEach(answer => {
-      expect(ANSWER_POOL).toContain(answer);
+      expect(WORD_POOL).toContain(answer);
     });
   });
 

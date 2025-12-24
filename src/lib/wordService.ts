@@ -2,7 +2,7 @@ const DATAMUSE_API = 'https://api.datamuse.com/words';
 const WORD_LENGTH = 6;
 const CACHE_KEY = 'dotriacontordle_word_cache';
 const CACHE_EXPIRY_HOURS = 24;
-const MIN_ANSWER_POOL_SIZE = 500;
+const MIN_WORD_POOL_SIZE = 500;
 const MIN_VALID_WORDS_SIZE = 2000;
 
 const pendingValidations = new Map<string, Promise<boolean>>();
@@ -107,7 +107,7 @@ class WordService {
     }
 
     frequentWords.sort((a, b) => b.freq - a.freq);
-    const topWords = frequentWords.slice(0, MIN_ANSWER_POOL_SIZE).map(w => w.word);
+    const topWords = frequentWords.slice(0, MIN_WORD_POOL_SIZE).map(w => w.word);
 
     this.validWordsSet = new Set([...allWords, ...FALLBACK_VALID_WORDS]);
     this.answerPool = topWords.length >= 100 ? topWords : [...FALLBACK_ANSWERS];
@@ -193,7 +193,7 @@ class WordService {
       }
 
       if (data.validWords.length < MIN_VALID_WORDS_SIZE / 2 ||
-          data.answerPool.length < MIN_ANSWER_POOL_SIZE / 2) {
+          data.answerPool.length < MIN_WORD_POOL_SIZE / 2) {
         return null;
       }
 
