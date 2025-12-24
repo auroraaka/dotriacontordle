@@ -110,7 +110,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: 'spring', duration: 0.3 }}
-          className="relative bg-bg-secondary rounded-xl p-4 sm:p-6 max-w-lg w-full mx-4 max-h-[90vh] flex flex-col"
+          className="relative bg-bg-secondary rounded-xl p-4 sm:p-6 max-w-lg w-full mx-4 h-[90vh] max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between mb-3 shrink-0">
@@ -138,7 +138,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
           <div className="flex-1 min-h-0 flex justify-center">
             <div 
               ref={scrollContainerRef}
-              className={`overflow-y-auto p-2 mb-2 rounded-lg bg-bg-tertiary/50 no-scrollbar ${
+              className={`h-full overflow-y-auto p-2 mb-2 rounded-lg bg-bg-tertiary/50 no-scrollbar ${
                 board.solved 
                   ? 'ring-2 ring-tile-correct/50' 
                   : state.gameStatus === 'lost' 
