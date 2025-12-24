@@ -5,18 +5,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronLeft, ChevronRight, Delete, CornerDownLeft } from 'lucide-react';
 import { WordGrid } from './WordGrid';
 import { useGame } from '@/context/GameContext';
-import { TileState, KEYBOARD_ROWS } from '@/types/game';
+import { TileState, KEYBOARD_ROWS, KEY_STATE_STYLES } from '@/types/game';
 import { loadSettings } from '@/lib/storage';
 import { evaluateGuess, updateKeyboardState } from '@/lib/evaluate';
-
-const keyStateStyles: Record<TileState | 'default', string> = {
-  default: 'bg-key-default hover:bg-key-hover',
-  empty: 'bg-key-default hover:bg-key-hover',
-  tbd: 'bg-key-default hover:bg-key-hover',
-  correct: 'bg-tile-correct hover:brightness-110',
-  present: 'bg-tile-present hover:brightness-110',
-  absent: 'bg-tile-absent hover:brightness-110',
-};
 
 interface ExpandedBoardProps {
   boardIndex: number;
@@ -212,7 +203,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
                         onClick={() => handleKeyClick(key)}
                         whileTap={{ scale: 0.95 }}
                         className={`
-                          ${keyStateStyles[keyState]}
+                          ${KEY_STATE_STYLES[keyState]}
                           ${isSpecial ? 'px-2 text-[10px]' : 'flex-1 max-w-[36px]'}
                           h-10 rounded-md font-semibold text-white text-sm
                           flex items-center justify-center transition-colors duration-150

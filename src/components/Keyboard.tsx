@@ -2,18 +2,9 @@
 
 import { motion } from 'motion/react';
 import { Delete, CornerDownLeft } from 'lucide-react';
-import { TileState, KEYBOARD_ROWS } from '@/types/game';
+import { KEYBOARD_ROWS, KEY_STATE_STYLES } from '@/types/game';
 import { useGame } from '@/context/GameContext';
 import { useKeyboard } from '@/hooks/useKeyboard';
-
-const keyStateStyles: Record<TileState | 'default', string> = {
-  default: 'bg-key-default hover:bg-key-hover',
-  empty: 'bg-key-default hover:bg-key-hover',
-  tbd: 'bg-key-default hover:bg-key-hover',
-  correct: 'bg-tile-correct hover:brightness-110',
-  present: 'bg-tile-present hover:brightness-110',
-  absent: 'bg-tile-absent hover:brightness-110',
-};
 
 export function Keyboard() {
   const { state, addLetter, removeLetter, submitGuess, setExpandedBoard } = useGame();
@@ -49,7 +40,7 @@ export function Keyboard() {
                 onClick={() => handleKeyClick(key)}
                 whileTap={{ scale: 0.95 }}
                 className={`
-                  ${keyStateStyles[keyState]}
+                  ${KEY_STATE_STYLES[keyState]}
                   ${isSpecial ? 'px-2 sm:px-3 md:px-4 text-[10px] sm:text-xs' : 'flex-1 max-w-[44px] sm:max-w-[52px]'}
                   h-11 sm:h-12 md:h-14 rounded-md font-semibold text-white text-sm sm:text-base
                   flex items-center justify-center transition-colors duration-150

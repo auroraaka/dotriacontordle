@@ -47,3 +47,12 @@ export const KEYBOARD_ROWS = [
   ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
   ['BACKSPACE', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'ENTER'],
 ];
+
+export const KEY_STATE_STYLES: Record<TileState | 'default', string> = {
+  default: 'bg-key-default hover:bg-key-hover',
+  empty: 'bg-key-default hover:bg-key-hover',
+  tbd: 'bg-key-default hover:bg-key-hover',
+  correct: 'bg-tile-correct hover:brightness-110',
+  present: 'bg-tile-present hover:brightness-110',
+  absent: 'bg-key-absent hover:brightness-110',
+};
