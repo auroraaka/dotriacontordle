@@ -33,6 +33,12 @@ export function Keyboard() {
           {row.map((key) => {
             const isSpecial = key === 'ENTER' || key === 'BACKSPACE';
             const keyState = keyboardState[key] || 'default';
+            const specialStyle =
+              key === 'BACKSPACE'
+                ? 'bg-red-600 hover:bg-red-500'
+                : key === 'ENTER'
+                ? 'bg-cyan-500 hover:bg-cyan-400'
+                : '';
 
             return (
               <motion.button
@@ -40,7 +46,7 @@ export function Keyboard() {
                 onClick={() => handleKeyClick(key)}
                 whileTap={{ scale: 0.95 }}
                 className={`
-                  ${KEY_STATE_STYLES[keyState]}
+                  ${isSpecial ? specialStyle : KEY_STATE_STYLES[keyState]}
                   ${isSpecial ? 'px-2 sm:px-3 md:px-4 text-[10px] sm:text-xs' : 'flex-1 max-w-[44px] sm:max-w-[52px]'}
                   h-11 sm:h-12 md:h-14 rounded-md font-semibold text-white text-sm sm:text-base
                   flex items-center justify-center transition-colors duration-150

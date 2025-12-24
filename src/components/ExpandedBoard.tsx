@@ -196,6 +196,12 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
                   {row.map((key) => {
                     const isSpecial = key === 'ENTER' || key === 'BACKSPACE';
                     const keyState = boardKeyboardState[key] || 'default';
+                    const specialStyle =
+                      key === 'BACKSPACE'
+                        ? 'bg-red-600 hover:bg-red-500'
+                        : key === 'ENTER'
+                        ? 'bg-cyan-500 hover:bg-cyan-400'
+                        : '';
 
                     return (
                       <motion.button
@@ -203,7 +209,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
                         onClick={() => handleKeyClick(key)}
                         whileTap={{ scale: 0.95 }}
                         className={`
-                          ${KEY_STATE_STYLES[keyState]}
+                          ${isSpecial ? specialStyle : KEY_STATE_STYLES[keyState]}
                           ${isSpecial ? 'px-2 text-[10px]' : 'flex-1 max-w-[36px]'}
                           h-10 rounded-md font-semibold text-white text-sm
                           flex items-center justify-center transition-colors duration-150

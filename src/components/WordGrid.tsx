@@ -119,9 +119,16 @@ export const MiniWordGrid = memo(function MiniWordGrid({
 
     const computeLayout = (width: number, height: number) => {
       const cols = WORD_LENGTH;
-      const minRows = 3;
-      const maxRowsCap = 5;
-      const desiredMaxRows = Math.min(maxRowsCap, Math.max(minRows, relevantGuesses.length));
+      const isSmallViewport =
+        typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(max-width: 640px)').matches;
+
+      const minRows = isSmallViewport ? 5 : 4;
+      const maxRowsCap = isSmallViewport ? 8 : 5;
+      const desiredMaxRows = isSmallViewport
+        ? maxRowsCap
+        : Math.min(maxRowsCap, Math.max(minRows, relevantGuesses.length));
 
       const computeForRows = (rows: number) => {
         const baseCell = Math.min(width / cols, height / rows);
@@ -209,8 +216,8 @@ export const MiniWordGrid = memo(function MiniWordGrid({
         className="flex flex-col flex-1 min-h-0 overflow-hidden rounded-sm min-w-0 w-full justify-end"
         style={{ gap: `${miniLayout.gapPx}px` }}
       >
-        {displayGuesses.length < 3 &&
-          Array.from({ length: 3 - displayGuesses.length }).map((_, rowIdx) => (
+        {displayGuesses.length < miniLayout.rowsToShow &&
+          Array.from({ length: miniLayout.rowsToShow - displayGuesses.length }).map((_, rowIdx) => (
             <div
               key={`empty-${rowIdx}`}
               className="grid w-full"
