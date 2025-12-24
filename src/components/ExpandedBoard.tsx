@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronLeft, ChevronRight, Delete, CornerDownLeft } from 'lucide-react';
 import { WordGrid } from './WordGrid';
 import { useGame } from '@/context/GameContext';
 import { TileState, KEYBOARD_ROWS } from '@/types/game';
 import { loadSettings } from '@/lib/storage';
+import { evaluateGuess, updateKeyboardState } from '@/lib/evaluate';
 
 const keyStateStyles: Record<TileState | 'default', string> = {
   default: 'bg-key-default hover:bg-key-hover',
@@ -26,7 +27,23 @@ interface ExpandedBoardProps {
 export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoardProps) {
   const { state, error, addLetter, removeLetter, submitGuess } = useGame();
   const board = state.boards[boardIndex];
-  const { keyboardState, gameStatus, currentGuess } = state;
+  const { gameStatus, currentGuess, guesses } = state;
+
+  const boardKeyboardState = useMemo(() => {
+    let keyboardState: Record<string, TileState> = {};
+    
+    const relevantGuessCount = board.solved && board.solvedAtGuess !== null
+      ? board.solvedAtGuess + 1
+      : guesses.length;
+    
+    for (let i = 0; i < relevantGuessCount; i++) {
+      const guess = guesses[i];
+      const evaluation = evaluateGuess(guess, board.answer);
+      keyboardState = updateKeyboardState(keyboardState, guess, evaluation.states);
+    }
+    
+    return keyboardState;
+  }, [board.answer, board.solved, board.solvedAtGuess, guesses]); 
   const [glowMode, setGlowMode] = useState(false);
   const [showError, setShowError] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -187,7 +204,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
                 <div key={rowIndex} className="flex gap-1 justify-center w-full">
                   {row.map((key) => {
                     const isSpecial = key === 'ENTER' || key === 'BACKSPACE';
-                    const keyState = keyboardState[key] || 'default';
+                    const keyState = boardKeyboardState[key] || 'default';
 
                     return (
                       <motion.button
