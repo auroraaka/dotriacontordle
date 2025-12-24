@@ -35,9 +35,9 @@ export function Keyboard() {
             const keyState = keyboardState[key] || 'default';
             const specialStyle =
               key === 'BACKSPACE'
-                ? 'bg-red-600 hover:bg-red-500'
+                ? 'key-backspace'
                 : key === 'ENTER'
-                ? 'bg-cyan-500 hover:bg-cyan-400'
+                ? 'key-enter'
                 : '';
 
             return (

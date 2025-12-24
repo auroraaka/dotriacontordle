@@ -13,6 +13,7 @@ interface WordGridProps {
   maxRows?: number;
   hideStatusRing?: boolean;
   noBg?: boolean;
+  glowMode?: boolean;
 }
 
 export const WordGrid = memo(function WordGrid({
@@ -22,6 +23,7 @@ export const WordGrid = memo(function WordGrid({
   maxRows,
   hideStatusRing = false,
   noBg = false,
+  glowMode = false,
 }: WordGridProps) {
   const { state, getEvaluationForBoard } = useGame();
   const board = state.boards[boardIndex];
@@ -73,6 +75,7 @@ export const WordGrid = memo(function WordGrid({
               letter={currentGuess[idx] || ''}
               state={currentGuess[idx] ? 'tbd' : 'empty'}
               size={mini ? 'mini' : 'normal'}
+              glowMode={glowMode}
             />
           ))}
         </div>

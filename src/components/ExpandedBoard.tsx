@@ -143,7 +143,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
             </button>
           </div>
 
-          <div className="flex-1 min-h-0 flex justify-center items-start">
+          <div className="flex-1 min-h-0 flex justify-center items-start mb-5">
             <div 
               ref={scrollContainerRef}
               className={`self-start max-h-full overflow-y-auto p-2 mb-2 rounded-lg bg-bg-tertiary/50 no-scrollbar ${
@@ -154,40 +154,9 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
                   : ''
               }`}
             >
-              <WordGrid boardIndex={boardIndex} showCurrentGuess hideStatusRing noBg />
+              <WordGrid boardIndex={boardIndex} showCurrentGuess hideStatusRing noBg glowMode={glowMode} />
             </div>
           </div>
-
-          {gameStatus === 'playing' && (
-            <div className={`flex justify-center shrink-0 mb-4 ${board.solved ? 'mt-[60px] sm:mt-[68px]' : 'mt-4'}`}>
-              <div className="flex gap-1 sm:gap-1.5 p-2 rounded-lg bg-bg-tertiary/60 border border-white/5">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-8 h-10 sm:w-10 sm:h-12 rounded-md font-bold text-xl sm:text-2xl flex items-center justify-center uppercase transition-all duration-150 border-2 ${
-                      currentGuess[i] 
-                        ? '' 
-                        : 'bg-tile-empty/30 text-text-secondary/20 border-tile-border/50'
-                    }`}
-                    style={currentGuess[i] ? (glowMode ? {
-                      background: 'rgba(255, 0, 255, 0.2)',
-                      color: '#ff00ff',
-                      borderColor: '#ff00ff',
-                      boxShadow: '0 0 20px rgba(255, 0, 255, 0.5), 0 0 40px rgba(255, 0, 255, 0.2), inset 0 0 15px rgba(255, 0, 255, 0.1)',
-                      textShadow: '0 0 10px rgba(255, 0, 255, 0.8)',
-                    } : {
-                      background: 'rgba(6, 182, 212, 0.2)',
-                      color: 'rgb(34, 211, 238)',
-                      borderColor: 'rgb(34, 211, 238)',
-                      boxShadow: '0 0 15px rgba(0, 255, 255, 0.3)',
-                    }) : undefined}
-                  >
-                    {currentGuess[i] || ''}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {gameStatus === 'playing' && (
             <div className="flex flex-col items-center gap-1 w-full shrink-0 mb-6">
@@ -198,9 +167,9 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
                     const keyState = boardKeyboardState[key] || 'default';
                     const specialStyle =
                       key === 'BACKSPACE'
-                        ? 'bg-red-600 hover:bg-red-500'
+                        ? 'key-backspace'
                         : key === 'ENTER'
-                        ? 'bg-cyan-500 hover:bg-cyan-400'
+                        ? 'key-enter'
                         : '';
 
                     return (

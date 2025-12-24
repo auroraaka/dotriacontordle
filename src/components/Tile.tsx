@@ -9,6 +9,7 @@ interface TileProps {
   delay?: number;
   size?: 'mini' | 'normal' | 'large';
   animate?: boolean;
+  glowMode?: boolean;
 }
 
 const stateStyles: Record<TileState, string> = {
@@ -47,15 +48,28 @@ export function Tile({ letter, state, delay = 0, size = 'normal', animate = true
   );
 }
 
-export function TileWithPop({ letter, state, size = 'normal' }: TileProps) {
+export function TileWithPop({ letter, state, size = 'normal', glowMode = false }: TileProps) {
   const hasLetter = letter !== '';
+  const isTbd = state === 'tbd' && hasLetter;
 
   return (
     <motion.div
       className={`flex items-center justify-center font-bold uppercase select-none ${stateStyles[state]} ${sizeStyles[size]}`}
       initial={false}
-      animate={hasLetter && state === 'tbd' ? { scale: [1, 1.1, 1] } : {}}
+      animate={isTbd ? { scale: [1, 1.1, 1] } : {}}
       transition={{ duration: 0.1 }}
+      style={isTbd ? (glowMode ? {
+        background: 'var(--tile-active-bg)',
+        color: 'var(--tile-active-color)',
+        borderColor: 'var(--tile-active-border)',
+        boxShadow: 'var(--tile-active-shadow)',
+        textShadow: 'var(--tile-active-text-shadow)',
+      } : {
+        background: 'var(--tile-active-bg)',
+        color: 'var(--tile-active-color)',
+        borderColor: 'var(--tile-active-border)',
+        boxShadow: 'var(--tile-active-shadow)',
+      }) : undefined}
     >
       {letter}
     </motion.div>
