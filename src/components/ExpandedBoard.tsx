@@ -152,7 +152,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
               )}
             </div>
 
-            {!board.solved && (
+            {!board.solved && state.gameStatus === 'playing' && (
               <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
                 <div className="flex gap-0.5">
                   {indicatorBestByPosition.map((s, idx) => (

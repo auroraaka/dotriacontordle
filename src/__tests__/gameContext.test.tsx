@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { GameProvider, useGame } from '@/context/GameContext';
 import { isValidWord } from '@/lib/wordService';
+import { MAX_GUESSES } from '@/types/game';
 
 const MOCK_ANSWERS = [
   'ACTION', 'ANIMAL', 'ANSWER', 'BEAUTY', 'BEFORE', 'BETTER', 'BORDER', 'BOTTLE',
@@ -24,6 +25,13 @@ vi.mock('@/lib/answers', async () => {
   return {
     ...actual,
     getRandomAnswers: vi.fn((count: number) => MOCK_ANSWERS.slice(0, count)),
+  };
+});
+
+vi.mock('@/lib/daily', async () => {
+  return {
+    getDailyNumber: vi.fn(() => 42),
+    getDailyAnswers: vi.fn(() => MOCK_ANSWERS),
   };
 });
 
@@ -357,6 +365,72 @@ describe('Game input mechanics', () => {
 
       fireEvent.click(screen.getByText('new'));
       expect(screen.getByTestId('gameStatus').textContent).toBe('playing');
+    });
+  });
+
+  describe('persistence on final guess', () => {
+    it('persists the terminal lost state (and clears currentGuess) after the last allowed guess', async () => {
+      const idxToWord = (n: number) => {
+        let x = n;
+        let s = '';
+        for (let i = 0; i < 6; i++) {
+          s = String.fromCharCode(65 + (x % 26)) + s;
+          x = Math.floor(x / 26);
+        }
+        return s;
+      };
+
+      const preGuesses = Array.from({ length: MAX_GUESSES - 1 }, (_, i) => idxToWord(i + 1));
+
+      localStorage.setItem(
+        'dotriacontordle_daily_state',
+        JSON.stringify({
+          boards: MOCK_ANSWERS.map((answer) => ({ answer, solved: false, solvedAtGuess: null })),
+          guesses: preGuesses,
+          currentGuess: idxToWord(999),
+          gameStatus: 'playing',
+          keyboardState: {},
+          expandedBoard: null,
+          gameMode: 'daily',
+          dailyNumber: 42,
+          startedAt: null,
+          endedAt: null,
+          timerRunning: false,
+          timerBaseElapsedMs: 0,
+          timerResumedAt: null,
+          timerToggledAt: null,
+        })
+      );
+
+      render(
+        <GameProvider>
+          <Harness customWord={idxToWord(12345)} />
+        </GameProvider>
+      );
+
+      await act(async () => {
+        await vi.runAllTimersAsync();
+      });
+
+      expect(screen.getByTestId('gameStatus').textContent).toBe('playing');
+      expect(Number(screen.getByTestId('guessCount').textContent)).toBe(MAX_GUESSES - 1);
+
+      fireEvent.click(screen.getByText('type'));
+      await act(async () => {
+        fireEvent.click(screen.getByText('submit'));
+      });
+
+      expect(screen.getByTestId('gameStatus').textContent).toBe('lost');
+      expect(screen.getByTestId('currentGuess').textContent).toBe('');
+
+      const saved = localStorage.getItem('dotriacontordle_daily_state');
+      expect(saved).not.toBeNull();
+      const parsed = JSON.parse(saved as string) as { gameStatus: string; currentGuess: string; guesses: string[] };
+      expect(parsed.gameStatus).toBe('lost');
+      expect(parsed.currentGuess).toBe('');
+      expect(parsed.guesses).toHaveLength(MAX_GUESSES);
+
+      expect(vi.mocked(isValidWord)).toHaveBeenCalled();
     });
   });
 });

@@ -273,7 +273,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, [isLoadingWords]);
 
   useEffect(() => {
-    if (isInitialized && state.gameStatus === 'playing') {
+    if (isInitialized) {
       saveGameState(state, state.gameMode);
     }
   }, [state, isInitialized]);
