@@ -152,19 +152,21 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
               )}
             </div>
 
-            <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-              <div className="flex gap-0.5">
-                {indicatorBestByPosition.map((s, idx) => (
-                  <Tile
-                    key={idx}
-                    letter={s === 'correct' ? board.answer[idx] : ''}
-                    state={s === 'correct' ? 'correct' : s === 'present' ? 'present' : 'empty'}
-                    size="normal"
-                    animate={false}
-                  />
-                ))}
+            {!board.solved && (
+              <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+                <div className="flex gap-0.5">
+                  {indicatorBestByPosition.map((s, idx) => (
+                    <Tile
+                      key={idx}
+                      letter={s === 'correct' ? board.answer[idx] : ''}
+                      state={s === 'correct' ? 'correct' : s === 'present' ? 'present' : 'empty'}
+                      size="normal"
+                      animate={false}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <button
               onClick={onClose}
