@@ -4,6 +4,7 @@ import {
   loadGameState,
   loadStats,
   saveStats,
+  updateStatsAfterGame,
   loadSettings,
   saveSettings,
   createInitialBoards,
@@ -147,6 +148,34 @@ describe('Stats Storage', () => {
 
     expect(loaded.currentStreak).toBe(0);
     expect(loaded.maxStreak).toBe(5);
+  });
+
+  it('does not double-count the same daily on reload (win)', () => {
+    const initial = loadStats();
+    expect(initial.gamesPlayed).toBe(0);
+
+    const first = updateStatsAfterGame(true, 3, 123);
+    expect(first.gamesPlayed).toBe(1);
+    expect(first.gamesWon).toBe(1);
+
+    const second = updateStatsAfterGame(true, 3, 123);
+    expect(second.gamesPlayed).toBe(1);
+    expect(second.gamesWon).toBe(1);
+  });
+
+  it('does not double-count the same daily on reload (loss)', () => {
+    const initial = loadStats();
+    expect(initial.gamesPlayed).toBe(0);
+
+    const first = updateStatsAfterGame(false, 10, 456);
+    expect(first.gamesPlayed).toBe(1);
+    expect(first.gamesWon).toBe(0);
+    expect(first.currentStreak).toBe(0);
+
+    const second = updateStatsAfterGame(false, 10, 456);
+    expect(second.gamesPlayed).toBe(1);
+    expect(second.gamesWon).toBe(0);
+    expect(second.currentStreak).toBe(0);
   });
 });
 

@@ -22,6 +22,18 @@ const DEFAULT_SETTINGS: GameSettings = {
   feedbackEnabled: true,
 };
 
+function createDefaultStats(): GameStats {
+  return {
+    gamesPlayed: 0,
+    gamesWon: 0,
+    currentStreak: 0,
+    maxStreak: 0,
+    guessDistribution: new Array(MAX_GUESSES).fill(0),
+    lastPlayedDaily: null,
+    lastCompletedDaily: null,
+  };
+}
+
 function isStorageAvailable(): boolean {
   if (typeof window === 'undefined') return false;
   try {
@@ -119,20 +131,20 @@ export function loadGameState(mode: 'daily' | 'free', currentDailyNumber?: numbe
 }
 
 export function loadStats(): GameStats {
-  if (!isStorageAvailable()) return DEFAULT_STATS;
+  if (!isStorageAvailable()) return createDefaultStats();
   
   try {
     const saved = localStorage.getItem(STORAGE_KEYS.STATS);
-    if (!saved) return DEFAULT_STATS;
+    if (!saved) return createDefaultStats();
     
     const stats = JSON.parse(saved) as GameStats;
-    if (stats.guessDistribution.length !== MAX_GUESSES) {
+    if (!Array.isArray(stats.guessDistribution) || stats.guessDistribution.length !== MAX_GUESSES) {
       stats.guessDistribution = new Array(MAX_GUESSES).fill(0);
     }
     return stats;
   } catch (error) {
     console.error('Failed to load stats:', error);
-    return DEFAULT_STATS;
+    return createDefaultStats();
   }
 }
 
@@ -152,6 +164,9 @@ export function updateStatsAfterGame(
   dailyNumber: number | null
 ): GameStats {
   const stats = loadStats();
+  if (dailyNumber !== null && stats.lastPlayedDaily === dailyNumber) {
+    return stats;
+  }
   
   stats.gamesPlayed++;
   
