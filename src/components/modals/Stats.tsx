@@ -33,9 +33,6 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
     ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)
     : 0;
 
-  const maxDistribution = Math.max(...stats.guessDistribution, 1);
-  const visibleDistribution = stats.guessDistribution.slice(0, 40);
-
   return (
     <AnimatePresence>
       <motion.div
@@ -64,33 +61,6 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
             <StatBox value={winPercentage} label="Win %" />
             <StatBox value={stats.currentStreak} label="Current Streak" />
             <StatBox value={stats.maxStreak} label="Max Streak" />
-          </div>
-
-          <div className="mb-6">
-            <h3 className="font-bold mb-3">Guess Distribution</h3>
-            {stats.gamesPlayed === 0 ? (
-              <p className="text-text-secondary text-sm">No data yet</p>
-            ) : (
-              <div className="space-y-1">
-                {visibleDistribution.map((count, idx) => {
-                  if (idx > 36) return null;
-                  const width = count > 0 ? Math.max((count / maxDistribution) * 100, 10) : 7;
-                  const isCurrentGame = state.gameStatus === 'won' && state.guesses.length === idx + 1;
-
-                  return (
-                    <div key={idx} className="flex items-center gap-2 text-xs">
-                      <span className="w-4 text-right">{idx + 1}</span>
-                      <div
-                        className={`h-4 flex items-center justify-end px-1 rounded-sm ${isCurrentGame ? 'bg-tile-correct' : 'bg-tile-absent'}`}
-                        style={{ width: `${width}%` }}
-                      >
-                        <span className="font-bold">{count}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
 
           {state.gameMode === 'daily' && (

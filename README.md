@@ -13,8 +13,7 @@ Dotriacontordle is the ultimate word puzzle challenge! Guess 32 six-letter words
 - **Free Play Mode** - Practice without limits
 - **Dark Cyberpunk Theme** - Sleek, modern design with optional Glow Mode
 - **Responsive Layout** - Works on desktop and mobile
-- **Statistics Tracking** - Track your wins, streaks, and guess distribution
-- **Hard Mode** - Revealed hints must be used in subsequent guesses
+- **Statistics Tracking** - Track your wins and streaks
 
 ## Stack
 
