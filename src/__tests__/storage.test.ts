@@ -24,6 +24,12 @@ describe('Game State Storage', () => {
     expandedBoard: null,
     gameMode: 'daily',
     dailyNumber: 42,
+    startedAt: null,
+    endedAt: null,
+    timerRunning: false,
+    timerBaseElapsedMs: 0,
+    timerResumedAt: null,
+    timerToggledAt: null,
   };
 
   it('saves and loads daily game state', () => {
@@ -152,15 +158,17 @@ describe('Settings Storage', () => {
   it('returns default settings when none saved', () => {
     const settings = loadSettings();
     expect(settings.glowMode).toBe(false);
+    expect(settings.feedbackEnabled).toBe(true);
   });
 
   it('saves and loads settings', () => {
-    const settings: GameSettings = { glowMode: true };
+    const settings: GameSettings = { glowMode: true, feedbackEnabled: false };
     
     saveSettings(settings);
     const loaded = loadSettings();
     
     expect(loaded.glowMode).toBe(true);
+    expect(loaded.feedbackEnabled).toBe(false);
   });
 });
 

@@ -4,7 +4,7 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Tile, TileWithPop } from './Tile';
 import { useGame } from '@/context/GameContext';
-import { WORD_LENGTH } from '@/types/game';
+import { TileState, WORD_LENGTH } from '@/types/game';
 
 interface WordGridProps {
   boardIndex: number;
@@ -111,7 +111,8 @@ export const MiniWordGrid = memo(function MiniWordGrid({
   const [miniLayout, setMiniLayout] = useState(() => ({
     rowsToShow: 3,
     tilePx: 8,
-    gapPx: 1,
+    gapX: 1,
+    gapY: 1,
     fontPx: 5,
     radiusPx: 2,
   }));
@@ -128,23 +129,24 @@ export const MiniWordGrid = memo(function MiniWordGrid({
         window.matchMedia('(max-width: 640px)').matches;
 
       const minRows = isSmallViewport ? 5 : 4;
-      const maxRowsCap = isSmallViewport ? 8 : 5;
+      const maxRowsCap = isSmallViewport ? 8 : 6;
       const desiredMaxRows = isSmallViewport
         ? maxRowsCap
         : Math.min(maxRowsCap, Math.max(minRows, relevantGuesses.length));
 
       const computeForRows = (rows: number) => {
         const baseCell = Math.min(width / cols, height / rows);
-        const gapPx = Math.max(1, Math.min(6, Math.floor(baseCell * 0.12)));
+        const gapX = Math.max(0, Math.min(4, Math.floor(baseCell * 0.06)));
+        const gapY = Math.max(0, Math.min(4, Math.floor(baseCell * 0.06)));
 
-        const tileW = (width - gapPx * (cols - 1)) / cols;
-        const tileH = (height - gapPx * (rows - 1)) / rows;
+        const tileW = (width - gapX * (cols - 1)) / cols;
+        const tileH = (height - gapY * (rows - 1)) / rows;
         const tilePx = Math.max(4, Math.floor(Math.min(tileW, tileH)));
 
         const fontPx = Math.max(4, Math.min(14, Math.floor(tilePx * 0.55)));
         const radiusPx = Math.max(2, Math.min(8, Math.floor(tilePx * 0.2)));
 
-        return { rowsToShow: rows, tilePx, gapPx, fontPx, radiusPx };
+        return { rowsToShow: rows, tilePx, gapX, gapY, fontPx, radiusPx };
       };
 
       const minReadableTilePx = 6;
@@ -166,7 +168,8 @@ export const MiniWordGrid = memo(function MiniWordGrid({
         if (
           prev.rowsToShow === next.rowsToShow &&
           prev.tilePx === next.tilePx &&
-          prev.gapPx === next.gapPx &&
+          prev.gapX === next.gapX &&
+          prev.gapY === next.gapY &&
           prev.fontPx === next.fontPx &&
           prev.radiusPx === next.radiusPx
         ) {
@@ -193,16 +196,81 @@ export const MiniWordGrid = memo(function MiniWordGrid({
     ? 'ring-2 ring-red-500'
     : 'hover:ring-2 hover:ring-accent/50';
 
+  const indicatorSummary = (() => {
+    if (relevantGuesses.length === 0) return null;
+
+    const rank: Record<TileState, number> = { empty: 0, absent: 1, present: 2, correct: 3, tbd: 0 };
+    const best: TileState[] = new Array(WORD_LENGTH).fill('empty');
+
+    for (let i = 0; i < relevantGuesses.length; i++) {
+      const states = getEvaluationForBoard(boardIndex, i);
+      for (let j = 0; j < WORD_LENGTH; j++) {
+        if (rank[states[j]] > rank[best[j]]) best[j] = states[j];
+      }
+    }
+
+    let correct = 0;
+    let present = 0;
+    for (const s of best) {
+      if (s === 'correct') correct++;
+      else if (s === 'present') present++;
+    }
+
+    return { correct, present, best };
+  })();
+
   return (
     <motion.button
       onClick={onClick}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`relative flex flex-col gap-px sm:gap-0.5 md:gap-1 p-0.5 sm:p-1 md:p-1.5 lg:p-2 rounded-md lg:rounded-lg bg-bg-tertiary cursor-pointer transition-all duration-200 h-full min-w-0 ${statusClass}`}
+      className={`relative flex flex-col gap-px sm:gap-0.5 md:gap-1 p-0.5 sm:p-0.5 md:p-1 lg:p-1.5 rounded-md lg:rounded-lg bg-bg-tertiary cursor-pointer transition-all duration-200 h-full min-w-0 ${statusClass}`}
     >
       <span className="absolute -top-1 -left-1 sm:-top-1.5 sm:-left-1.5 md:-top-2 md:-left-2 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 bg-bg-secondary rounded-full text-[7px] sm:text-[8px] md:text-[10px] flex items-center justify-center text-text-secondary font-bold z-10 border border-header-border">
         {boardIndex + 1}
       </span>
+
+      {indicatorSummary && (
+        <div
+          className="absolute -top-1 left-1/2 -translate-x-1/2 sm:-top-1.5 md:-top-2 flex items-center gap-0.5 pointer-events-none select-none z-10"
+          aria-label={`Board ${boardIndex + 1}: ${indicatorSummary.correct} green, ${indicatorSummary.present} yellow`}
+          title={`${indicatorSummary.correct} green • ${indicatorSummary.present} yellow (cumulative)`}
+        >
+          <div className="flex sm:hidden items-center gap-0.5">
+            <span
+              className={`w-3.5 h-3.5 bg-bg-secondary rounded-full text-[8px] flex items-center justify-center font-bold border border-tile-correct text-tile-correct shadow-[0_0_10px_rgba(34,197,94,0.25)] ${
+                indicatorSummary.correct === 0 ? 'opacity-40' : 'opacity-95'
+              }`}
+            >
+              {indicatorSummary.correct}
+            </span>
+            <span
+              className={`w-3.5 h-3.5 bg-bg-secondary rounded-full text-[8px] flex items-center justify-center font-bold border border-tile-present text-tile-present shadow-[0_0_10px_rgba(234,179,8,0.22)] ${
+                indicatorSummary.present === 0 ? 'opacity-40' : 'opacity-95'
+              }`}
+            >
+              {indicatorSummary.present}
+            </span>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-0.5 px-1 py-0.5 bg-bg-secondary/85 border border-header-border rounded-full">
+            {indicatorSummary.best.map((s, idx) => {
+              const dotClass =
+                s === 'correct'
+                  ? 'bg-tile-correct shadow-[0_0_8px_rgba(34,197,94,0.35)]'
+                  : s === 'present'
+                  ? 'bg-tile-present shadow-[0_0_8px_rgba(234,179,8,0.28)]'
+                  : 'bg-tile-absent/60';
+              return (
+                <span
+                  key={idx}
+                  className={`w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-2.5 md:h-2.5 rounded-full ${dotClass}`}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {board.solved && (
         <motion.div
@@ -217,16 +285,16 @@ export const MiniWordGrid = memo(function MiniWordGrid({
       <div
         ref={gridContainerRef}
         className="flex flex-col flex-1 min-h-0 overflow-hidden rounded-sm min-w-0 w-full justify-end"
-        style={{ gap: `${miniLayout.gapPx}px` }}
+        style={{ gap: `${miniLayout.gapY}px` }}
       >
         {displayGuesses.length < miniLayout.rowsToShow &&
           Array.from({ length: miniLayout.rowsToShow - displayGuesses.length }).map((_, rowIdx) => (
             <div
               key={`empty-${rowIdx}`}
-              className="grid w-full"
+              className="grid w-full justify-center"
               style={{
-                gridTemplateColumns: `repeat(${WORD_LENGTH}, minmax(0, 1fr))`,
-                gap: `${miniLayout.gapPx}px`,
+                gridTemplateColumns: `repeat(${WORD_LENGTH}, ${miniLayout.tilePx}px)`,
+                columnGap: `${miniLayout.gapX}px`,
               }}
             >
               {Array.from({ length: WORD_LENGTH }).map((_, colIdx) => (
@@ -237,7 +305,6 @@ export const MiniWordGrid = memo(function MiniWordGrid({
                     width: `${miniLayout.tilePx}px`,
                     height: `${miniLayout.tilePx}px`,
                     borderRadius: `${miniLayout.radiusPx}px`,
-                    justifySelf: 'center',
                   }}
                 />
               ))}
@@ -250,10 +317,10 @@ export const MiniWordGrid = memo(function MiniWordGrid({
           return (
             <div
               key={guessIdx}
-              className="grid w-full"
+              className="grid w-full justify-center"
               style={{
-                gridTemplateColumns: `repeat(${WORD_LENGTH}, minmax(0, 1fr))`,
-                gap: `${miniLayout.gapPx}px`,
+                gridTemplateColumns: `repeat(${WORD_LENGTH}, ${miniLayout.tilePx}px)`,
+                columnGap: `${miniLayout.gapX}px`,
               }}
             >
               {guess.split('').map((letter, letterIdx) => (
@@ -271,7 +338,6 @@ export const MiniWordGrid = memo(function MiniWordGrid({
                     height: `${miniLayout.tilePx}px`,
                     borderRadius: `${miniLayout.radiusPx}px`,
                     fontSize: `${miniLayout.fontPx}px`,
-                    justifySelf: 'center',
                     lineHeight: 1,
                   }}
                 >

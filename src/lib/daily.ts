@@ -73,7 +73,6 @@ function getCurrentDayStartEastern(): Date {
 }
 
 export function getDailyNumber(): number {
-  const now = new Date();
   const currentDayStart = getCurrentDayStartEastern();
   const diffTime = currentDayStart.getTime() - EPOCH_DATE.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));

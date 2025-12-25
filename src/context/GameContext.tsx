@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, useState } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, useRef, useState } from 'react';
 import {
   GameState,
   GameStats,
@@ -14,6 +14,7 @@ import { isValidWord, initializeWordService } from '@/lib/wordService';
 import { getRandomAnswers } from '@/lib/answers';
 import { getDailyNumber, getDailyAnswers } from '@/lib/daily';
 import { evaluateGuess, updateKeyboardState } from '@/lib/evaluate';
+import { primeFeedback, triggerFeedback } from '@/lib/feedback';
 import {
   saveGameState,
   loadGameState,
@@ -26,6 +27,7 @@ type GameAction =
   | { type: 'ADD_LETTER'; letter: string }
   | { type: 'REMOVE_LETTER' }
   | { type: 'SUBMIT_GUESS' }
+  | { type: 'TOGGLE_TIMER' }
   | { type: 'SET_EXPANDED_BOARD'; boardIndex: number | null }
   | { type: 'NEW_GAME'; mode: 'daily' | 'free' }
   | { type: 'LOAD_STATE'; state: GameState };
@@ -39,6 +41,7 @@ interface GameContextType {
   addLetter: (letter: string) => void;
   removeLetter: () => void;
   submitGuess: () => void;
+  toggleTimer: () => void;
   setExpandedBoard: (boardIndex: number | null) => void;
   newGame: (mode: 'daily' | 'free') => void;
   getEvaluationForBoard: (boardIndex: number, guessIndex: number) => TileState[];
@@ -61,6 +64,12 @@ function createInitialState(mode: 'daily' | 'free'): GameState {
     expandedBoard: null,
     gameMode: mode,
     dailyNumber,
+    startedAt: null,
+    endedAt: null,
+    timerRunning: false,
+    timerBaseElapsedMs: 0,
+    timerResumedAt: null,
+    timerToggledAt: null,
   };
 }
 
@@ -69,9 +78,14 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'ADD_LETTER': {
       if (state.gameStatus !== 'playing') return state;
       if (state.currentGuess.length >= WORD_LENGTH) return state;
+      const now = Date.now();
+      const shouldStart = state.startedAt === null;
       return {
         ...state,
         currentGuess: state.currentGuess + action.letter.toUpperCase(),
+        startedAt: shouldStart ? now : state.startedAt,
+        timerRunning: shouldStart ? true : state.timerRunning,
+        timerResumedAt: shouldStart ? now : state.timerResumedAt,
       };
     }
 
@@ -88,6 +102,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.gameStatus !== 'playing') return state;
       if (state.currentGuess.length !== WORD_LENGTH) return state;
       if (state.guesses.includes(state.currentGuess)) return state;
+
+      const now = Date.now();
+      const shouldStart = state.startedAt === null;
 
       const newGuesses = [...state.guesses, state.currentGuess];
       const guessIndex = newGuesses.length - 1;
@@ -115,6 +132,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (allSolved) newStatus = 'won';
       else if (outOfGuesses) newStatus = 'lost';
 
+      const willEnd = newStatus !== 'playing';
+      const finalizedElapsedMs =
+        willEnd && state.timerRunning && state.timerResumedAt !== null
+          ? state.timerBaseElapsedMs + (now - state.timerResumedAt)
+          : state.timerBaseElapsedMs;
+
       return {
         ...state,
         boards: newBoards,
@@ -122,6 +145,46 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         currentGuess: '',
         keyboardState: newKeyboardState,
         gameStatus: newStatus,
+        startedAt: shouldStart ? now : state.startedAt,
+        endedAt: willEnd ? (state.endedAt ?? now) : null,
+        timerRunning: willEnd ? false : (shouldStart ? true : state.timerRunning),
+        timerBaseElapsedMs: willEnd ? finalizedElapsedMs : state.timerBaseElapsedMs,
+        timerResumedAt: willEnd ? null : (shouldStart ? now : state.timerResumedAt),
+      };
+    }
+
+    case 'TOGGLE_TIMER': {
+      if (state.gameStatus !== 'playing') return state;
+
+      const now = Date.now();
+      if (state.startedAt === null) {
+        return {
+          ...state,
+          startedAt: now,
+          endedAt: null,
+          timerRunning: true,
+          timerBaseElapsedMs: 0,
+          timerResumedAt: now,
+          timerToggledAt: now,
+        };
+      }
+
+      if (state.timerRunning) {
+        const add = state.timerResumedAt !== null ? now - state.timerResumedAt : 0;
+        return {
+          ...state,
+          timerRunning: false,
+          timerBaseElapsedMs: state.timerBaseElapsedMs + add,
+          timerResumedAt: null,
+          timerToggledAt: now,
+        };
+      }
+
+      return {
+        ...state,
+        timerRunning: true,
+        timerResumedAt: now,
+        timerToggledAt: now,
       };
     }
 
@@ -146,6 +209,24 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [isLoadingWords, setIsLoadingWords] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
+  const errorTimeoutRef = useRef<number | null>(null);
+
+  const setTransientError = useCallback((message: string) => {
+    setError(message);
+    if (errorTimeoutRef.current !== null) {
+      window.clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null;
+    }
+    errorTimeoutRef.current = window.setTimeout(() => {
+      setError((prev) => (prev === message ? null : prev));
+    }, 2000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (errorTimeoutRef.current !== null) window.clearTimeout(errorTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -210,22 +291,32 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const addLetter = useCallback((letter: string) => {
     setError(null);
+    if (state.gameStatus === 'playing' && state.currentGuess.length < WORD_LENGTH) {
+      void triggerFeedback('key');
+    }
     dispatch({ type: 'ADD_LETTER', letter });
-  }, []);
+  }, [state.gameStatus, state.currentGuess.length]);
 
   const removeLetter = useCallback(() => {
     setError(null);
+    if (state.gameStatus === 'playing' && state.currentGuess.length > 0) {
+      void triggerFeedback('delete');
+    }
     dispatch({ type: 'REMOVE_LETTER' });
-  }, []);
+  }, [state.gameStatus, state.currentGuess.length]);
 
   const submitGuess = useCallback(async () => {
+    void primeFeedback();
+
     if (state.currentGuess.length !== WORD_LENGTH) {
-      setError('Not enough letters');
+      setTransientError('Not enough letters');
+      void triggerFeedback('error');
       return;
     }
 
     if (state.guesses.includes(state.currentGuess)) {
-      setError('Already guessed');
+      setTransientError('Already guessed');
+      void triggerFeedback('error');
       return;
     }
     
@@ -233,18 +324,43 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     try {
       const valid = await isValidWord(state.currentGuess);
       if (!valid) {
-        setError('Not a word');
+        setTransientError('Not a word');
+        void triggerFeedback('error');
         return;
       }
+
+      const guess = state.currentGuess;
+      const nextGuessesLen = state.guesses.length + 1;
+      const outOfGuesses = nextGuessesLen >= MAX_GUESSES;
+
+      const willSolveCount = state.boards.reduce((acc, board) => {
+        if (board.solved) return acc;
+        const evaluation = evaluateGuess(guess, board.answer);
+        return acc + (evaluation.isCorrect ? 1 : 0);
+      }, 0);
+
+      const alreadySolvedCount = state.boards.filter((b) => b.solved).length;
+      const allSolved = alreadySolvedCount + willSolveCount === state.boards.length;
+
       setError(null);
       dispatch({ type: 'SUBMIT_GUESS' });
+
+      if (allSolved) void triggerFeedback('win');
+      else if (outOfGuesses) void triggerFeedback('lose');
+      else if (willSolveCount > 0) void triggerFeedback('solved');
+      else void triggerFeedback('submit');
     } catch (e) {
       console.error('Word validation error:', e);
-      setError('Error validating word');
+      setTransientError('Error validating word');
+      void triggerFeedback('error');
     } finally {
       setIsValidating(false);
     }
-  }, [state.currentGuess, state.guesses]);
+  }, [state.currentGuess, state.guesses, state.boards, setTransientError]);
+
+  const toggleTimer = useCallback(() => {
+    dispatch({ type: 'TOGGLE_TIMER' });
+  }, []);
 
   const setExpandedBoard = useCallback((boardIndex: number | null) => {
     setError(null);
@@ -284,11 +400,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       addLetter,
       removeLetter,
       submitGuess,
+      toggleTimer,
       setExpandedBoard,
       newGame,
       getEvaluationForBoard,
     }),
-    [state, stats, error, isLoadingWords, isValidating, addLetter, removeLetter, submitGuess, setExpandedBoard, newGame, getEvaluationForBoard]
+    [state, stats, error, isLoadingWords, isValidating, addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard, newGame, getEvaluationForBoard]
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

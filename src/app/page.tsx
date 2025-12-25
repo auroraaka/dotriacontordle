@@ -11,34 +11,22 @@ import { loadSettings } from '@/lib/storage';
 
 function GameContent() {
   const { state, error, isLoadingWords } = useGame();
-  const [showError, setShowError] = useState(false);
   const [glowMode, setGlowMode] = useState(false);
 
   useEffect(() => {
-    const settings = loadSettings();
-    setGlowMode(settings.glowMode);
-    if (settings.glowMode) {
-      document.body.classList.add('glow-mode');
-    } else {
-      document.body.classList.remove('glow-mode');
-    }
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
+    const apply = () => {
       const settings = loadSettings();
       setGlowMode(settings.glowMode);
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
+      if (settings.glowMode) document.body.classList.add('glow-mode');
+      else document.body.classList.remove('glow-mode');
+    };
 
-  useEffect(() => {
-    if (error) {
-      setShowError(true);
-      const timer = setTimeout(() => setShowError(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
+    apply();
+
+    const onSettingsChanged = () => apply();
+    window.addEventListener('dotriacontordle_settings_changed', onSettingsChanged as EventListener);
+    return () => window.removeEventListener('dotriacontordle_settings_changed', onSettingsChanged as EventListener);
+  }, []);
 
   if (isLoadingWords) {
     return <LoadingScreen />;
@@ -49,7 +37,7 @@ function GameContent() {
       <Header />
 
       <AnimatePresence>
-        {showError && error && (
+        {error && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}

@@ -15,6 +15,12 @@ export interface GameState {
   expandedBoard: number | null;
   gameMode: 'daily' | 'free';
   dailyNumber: number;
+  startedAt: number | null;
+  endedAt: number | null;
+  timerRunning: boolean;
+  timerBaseElapsedMs: number;
+  timerResumedAt: number | null;
+  timerToggledAt: number | null;
 }
 
 export interface GameStats {
@@ -29,6 +35,7 @@ export interface GameStats {
 
 export interface GameSettings {
   glowMode: boolean;
+  feedbackEnabled: boolean;
 }
 
 export interface EvaluationResult {

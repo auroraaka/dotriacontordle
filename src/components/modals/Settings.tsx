@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { loadSettings, saveSettings } from '@/lib/storage';
@@ -15,18 +15,6 @@ interface SettingsModalProps {
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { newGame } = useGame();
   const [settings, setSettings] = useState<GameSettings>(() => loadSettings());
-
-  useEffect(() => {
-    if (isOpen) setSettings(loadSettings());
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (settings.glowMode) {
-      document.body.classList.add('glow-mode');
-    } else {
-      document.body.classList.remove('glow-mode');
-    }
-  }, [settings.glowMode]);
 
   const updateSetting = <K extends keyof GameSettings>(key: K, value: GameSettings[K]) => {
     const newSettings = { ...settings, [key]: value };

@@ -7,13 +7,14 @@ import { useGame } from '@/context/GameContext';
 import { useKeyboard } from '@/hooks/useKeyboard';
 
 export function Keyboard() {
-  const { state, addLetter, removeLetter, submitGuess, setExpandedBoard } = useGame();
+  const { state, addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard } = useGame();
   const { keyboardState, gameStatus } = state;
 
   useKeyboard({
     onLetter: addLetter,
     onEnter: submitGuess,
     onBackspace: removeLetter,
+    onSpace: toggleTimer,
     onBoardSelect: setExpandedBoard,
     disabled: gameStatus !== 'playing',
   });

@@ -19,6 +19,7 @@ const DEFAULT_STATS: GameStats = {
 
 const DEFAULT_SETTINGS: GameSettings = {
   glowMode: false,
+  feedbackEnabled: true,
 };
 
 function isStorageAvailable(): boolean {
@@ -55,7 +56,7 @@ export function loadGameState(mode: 'daily' | 'free', currentDailyNumber?: numbe
     const saved = localStorage.getItem(key);
     if (!saved) return null;
     
-    const state = JSON.parse(saved) as GameState & { savedAt?: number };
+    const state = JSON.parse(saved) as (GameState & { savedAt?: number }) | (Partial<GameState> & { savedAt?: number });
     
     if (mode === 'daily' && currentDailyNumber !== undefined) {
       if (state.dailyNumber !== currentDailyNumber) {
@@ -64,7 +65,53 @@ export function loadGameState(mode: 'daily' | 'free', currentDailyNumber?: numbe
       }
     }
     
-    return state;
+    const hasProgress =
+      Array.isArray((state as GameState).guesses) && (state as GameState).guesses.length > 0
+        ? true
+        : typeof (state as GameState).currentGuess === 'string' && (state as GameState).currentGuess.length > 0;
+
+    const savedAt = (state as { savedAt?: number }).savedAt;
+
+    const inferredStart =
+      (state as GameState).startedAt ??
+      (hasProgress ? savedAt ?? Date.now() : null);
+
+    const inferredEnd =
+      (state as GameState).endedAt ??
+      ((state as GameState).gameStatus && (state as GameState).gameStatus !== 'playing'
+        ? savedAt ?? Date.now()
+        : null);
+
+    const inferredTimerBaseElapsedMs =
+      typeof (state as GameState).timerBaseElapsedMs === 'number'
+        ? (state as GameState).timerBaseElapsedMs
+        : inferredStart === null
+          ? 0
+          : (state as GameState).gameStatus && (state as GameState).gameStatus !== 'playing'
+            ? Math.max(0, (inferredEnd ?? savedAt ?? Date.now()) - inferredStart)
+            : Math.max(0, Date.now() - inferredStart);
+
+    const inferredTimerRunning =
+      typeof (state as GameState).timerRunning === 'boolean'
+        ? (state as GameState).timerRunning
+        : Boolean((state as GameState).gameStatus === 'playing' && inferredStart !== null);
+
+    const inferredTimerResumedAt =
+      typeof (state as GameState).timerResumedAt === 'number'
+        ? (state as GameState).timerResumedAt
+        : inferredTimerRunning
+          ? Date.now()
+          : null;
+
+    return {
+      ...(state as GameState),
+      startedAt: inferredStart,
+      endedAt: inferredEnd,
+      timerRunning: inferredTimerRunning,
+      timerBaseElapsedMs: inferredTimerBaseElapsedMs,
+      timerResumedAt: inferredTimerRunning ? inferredTimerResumedAt : null,
+      timerToggledAt: typeof (state as GameState).timerToggledAt === 'number' ? (state as GameState).timerToggledAt : null,
+    };
   } catch (error) {
     console.error('Failed to load game state:', error);
     return null;
@@ -137,7 +184,13 @@ export function loadSettings(): GameSettings {
   try {
     const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (!saved) return DEFAULT_SETTINGS;
-    return JSON.parse(saved) as GameSettings;
+    const parsed = JSON.parse(saved) as Record<string, unknown> | null;
+    const merged = { ...DEFAULT_SETTINGS, ...(parsed && typeof parsed === 'object' ? parsed : {}) } as Record<string, unknown>;
+
+    return {
+      glowMode: Boolean(merged.glowMode),
+      feedbackEnabled: Boolean(merged.feedbackEnabled),
+    };
   } catch (error) {
     console.error('Failed to load settings:', error);
     return DEFAULT_SETTINGS;
@@ -149,6 +202,7 @@ export function saveSettings(settings: GameSettings): void {
   
   try {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    window.dispatchEvent(new CustomEvent('dotriacontordle_settings_changed', { detail: settings }));
   } catch (error) {
     console.error('Failed to save settings:', error);
   }

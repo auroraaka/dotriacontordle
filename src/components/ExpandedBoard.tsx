@@ -18,7 +18,7 @@ interface ExpandedBoardProps {
 export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoardProps) {
   const { state, error, addLetter, removeLetter, submitGuess } = useGame();
   const board = state.boards[boardIndex];
-  const { gameStatus, currentGuess, guesses } = state;
+  const { gameStatus, guesses } = state;
 
   const boardKeyboardState = useMemo(() => {
     let keyboardState: Record<string, TileState> = {};
@@ -36,23 +36,21 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
     return keyboardState;
   }, [board.answer, board.solved, board.solvedAtGuess, guesses]); 
   const [glowMode, setGlowMode] = useState(false);
-  const [showError, setShowError] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevGuessesLenRef = useRef<number>(state.guesses.length);
   const prevBoardIndexRef = useRef<number>(boardIndex);
 
   useEffect(() => {
-    const settings = loadSettings();
-    setGlowMode(settings.glowMode);
-  }, []);
+    const apply = () => {
+      const settings = loadSettings();
+      setGlowMode(settings.glowMode);
+    };
 
-  useEffect(() => {
-    if (error) {
-      setShowError(true);
-      const timer = setTimeout(() => setShowError(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
+    apply();
+    const onSettingsChanged = () => apply();
+    window.addEventListener('dotriacontordle_settings_changed', onSettingsChanged as EventListener);
+    return () => window.removeEventListener('dotriacontordle_settings_changed', onSettingsChanged as EventListener);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -101,7 +99,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
         onClick={onClose}
       >
         <AnimatePresence>
-          {showError && error && (
+          {error && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}

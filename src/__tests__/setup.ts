@@ -28,7 +28,7 @@ beforeEach(() => {
   });
 });
 
-(globalThis as any).fetch = vi.fn(async () => ({
+globalThis.fetch = vi.fn(async () => ({
   ok: false,
   json: async () => [],
-}));
+})) as unknown as typeof fetch;

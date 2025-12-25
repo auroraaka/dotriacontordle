@@ -18,9 +18,13 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     
-    setTimeUntilNext(formatTimeUntilNextDaily());
-    const interval = setInterval(() => setTimeUntilNext(formatTimeUntilNextDaily()), 1000);
-    return () => clearInterval(interval);
+    const tick = () => setTimeUntilNext(formatTimeUntilNextDaily());
+    const raf = window.requestAnimationFrame(tick);
+    const interval = window.setInterval(tick, 1000);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearInterval(interval);
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;

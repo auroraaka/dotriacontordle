@@ -6,11 +6,12 @@ interface UseKeyboardProps {
   onLetter: (letter: string) => void;
   onEnter: () => void;
   onBackspace: () => void;
+  onSpace?: () => void;
   onBoardSelect?: (boardNumber: number) => void;
   disabled?: boolean;
 }
 
-export function useKeyboard({ onLetter, onEnter, onBackspace, onBoardSelect, disabled = false }: UseKeyboardProps) {
+export function useKeyboard({ onLetter, onEnter, onBackspace, onSpace, onBoardSelect, disabled = false }: UseKeyboardProps) {
   const numberBuffer = useRef('');
   const numberTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -23,6 +24,12 @@ export function useKeyboard({ onLetter, onEnter, onBackspace, onBoardSelect, dis
       }
 
       const key = event.key;
+
+      if (onSpace && (key === ' ' || key === 'Spacebar')) {
+        event.preventDefault();
+        onSpace();
+        return;
+      }
 
       if (onBoardSelect && key >= '0' && key <= '9') {
         event.preventDefault();
@@ -55,7 +62,7 @@ export function useKeyboard({ onLetter, onEnter, onBackspace, onBoardSelect, dis
         onLetter(upperKey);
       }
     },
-    [onLetter, onEnter, onBackspace, onBoardSelect, disabled]
+    [onLetter, onEnter, onBackspace, onSpace, onBoardSelect, disabled]
   );
 
   useEffect(() => {

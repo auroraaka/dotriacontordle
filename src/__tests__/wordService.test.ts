@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { wordService, isValidWord, getRandomAnswers, initializeWordService } from '@/lib/wordService';
+import { isValidWord, getRandomAnswers, initializeWordService } from '@/lib/wordService';
 
 describe('wordService', () => {
   beforeEach(() => {
