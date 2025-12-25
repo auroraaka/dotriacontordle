@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronLeft, ChevronRight, Delete, CornerDownLeft } from 'lucide-react';
 import { WordGrid } from './WordGrid';
+import { Tile } from './Tile';
 import { useGame } from '@/context/GameContext';
 import { TileState, KEYBOARD_ROWS, KEY_STATE_STYLES } from '@/types/game';
 import { loadSettings } from '@/lib/storage';
@@ -16,7 +17,7 @@ interface ExpandedBoardProps {
 }
 
 export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoardProps) {
-  const { state, error, addLetter, removeLetter, submitGuess } = useGame();
+  const { state, error, addLetter, removeLetter, submitGuess, getEvaluationForBoard } = useGame();
   const board = state.boards[boardIndex];
   const { gameStatus, guesses } = state;
 
@@ -35,6 +36,23 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
     
     return keyboardState;
   }, [board.answer, board.solved, board.solvedAtGuess, guesses]); 
+
+  const indicatorBestByPosition = useMemo(() => {
+    const rank: Record<TileState, number> = { empty: 0, absent: 1, present: 2, correct: 3, tbd: 0 };
+    const best: TileState[] = new Array(board.answer.length).fill('empty');
+
+    const relevantGuessCount =
+      board.solved && board.solvedAtGuess !== null ? board.solvedAtGuess + 1 : guesses.length;
+
+    for (let i = 0; i < relevantGuessCount; i++) {
+      const states = getEvaluationForBoard(boardIndex, i);
+      for (let j = 0; j < best.length; j++) {
+        if (rank[states[j]] > rank[best[j]]) best[j] = states[j];
+      }
+    }
+
+    return best;
+  }, [board.answer, board.solved, board.solvedAtGuess, boardIndex, getEvaluationForBoard, guesses.length]);
   const [glowMode, setGlowMode] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevGuessesLenRef = useRef<number>(state.guesses.length);
@@ -119,8 +137,8 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
           className="relative bg-bg-secondary rounded-xl p-4 sm:p-6 max-w-lg w-full mx-4 h-[90vh] max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between mb-3 shrink-0">
-            <div className="flex items-center gap-3">
+          <div className="relative flex items-center justify-between mb-3 shrink-0">
+            <div className="flex items-center gap-3 pr-2">
               <span className="text-2xl font-bold text-accent">#{boardIndex + 1}</span>
               {board.solved && (
                 <span className="px-2 py-1 bg-tile-correct/20 text-tile-correct rounded-md text-sm font-medium">
@@ -133,6 +151,21 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
                 </span>
               )}
             </div>
+
+            <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+              <div className="flex gap-0.5">
+                {indicatorBestByPosition.map((s, idx) => (
+                  <Tile
+                    key={idx}
+                    letter={s === 'correct' ? board.answer[idx] : ''}
+                    state={s === 'correct' ? 'correct' : s === 'present' ? 'present' : 'empty'}
+                    size="normal"
+                    animate={false}
+                  />
+                ))}
+              </div>
+            </div>
+
             <button
               onClick={onClose}
               className="p-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
