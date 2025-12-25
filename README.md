@@ -2,16 +2,13 @@
 
 A 32 puzzle, six-letter, word puzzle game.
 
-## About
-
-Dotriacontordle is the ultimate word puzzle challenge! Guess 32 six-letter words in 37 tries.
-
 ## Features
 
 - **32 Word Puzzles** - Solve all 32 words simultaneously
-- **Daily Puzzles** - New puzzle every day with streak tracking
+- **Daily Puzzles** - Get a new puzzle every day
 - **Free Play Mode** - Practice without limits
-- **Dark Cyberpunk Theme** - Sleek, modern design with optional Glow Mode
+- **Smart Status Indicators** - Track progress at a glance
+- **Dark Cyberpunk Theme** - Sleek, modern design with sound/haptic feedback
 - **Responsive Layout** - Works on desktop and mobile
 - **Statistics Tracking** - Track your wins and streaks
 
