@@ -9,11 +9,13 @@ import { useKeyboard } from '@/hooks/useKeyboard';
 export function Keyboard() {
   const { state, isValidating, addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard } = useGame();
   const { keyboardState, gameStatus } = state;
-  const disabled = gameStatus !== 'playing' || isValidating;
+  const disabled = gameStatus !== 'playing';
 
   useKeyboard({
     onLetter: addLetter,
-    onEnter: submitGuess,
+    onEnter: () => {
+      if (!isValidating) submitGuess();
+    },
     onBackspace: removeLetter,
     onSpace: toggleTimer,
     onBoardSelect: setExpandedBoard,
@@ -23,7 +25,9 @@ export function Keyboard() {
   const handleKeyClick = (key: string) => {
     if (disabled) return;
 
-    if (key === 'ENTER') submitGuess();
+    if (key === 'ENTER') {
+      if (!isValidating) submitGuess();
+    }
     else if (key === 'BACKSPACE') removeLetter();
     else addLetter(key);
   };
@@ -54,7 +58,7 @@ export function Keyboard() {
                   flex items-center justify-center transition-colors duration-150
                   cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
                 `}
-                disabled={disabled}
+                disabled={disabled || (key === 'ENTER' && isValidating)}
               >
                 {key === 'BACKSPACE' ? <Delete className="w-5 h-5" /> : key === 'ENTER' ? <CornerDownLeft className="w-5 h-5" /> : key}
               </motion.button>
