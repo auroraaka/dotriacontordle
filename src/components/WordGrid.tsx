@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Tile, TileWithPop } from './Tile';
 import { useGame } from '@/context/GameContext';
@@ -117,7 +117,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
     radiusPx: 2,
   }));
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = gridContainerRef.current;
     if (!el) return;
 

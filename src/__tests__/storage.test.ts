@@ -31,6 +31,7 @@ describe('Game State Storage', () => {
     timerBaseElapsedMs: 0,
     timerResumedAt: null,
     timerToggledAt: null,
+    gameId: 'daily-42-test',
   };
 
   it('saves and loads daily game state', () => {

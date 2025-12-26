@@ -399,6 +399,7 @@ describe('Game input mechanics', () => {
           timerBaseElapsedMs: 0,
           timerResumedAt: null,
           timerToggledAt: null,
+          gameId: 'daily-42-test',
         })
       );
 

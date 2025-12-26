@@ -115,6 +115,11 @@ export function loadGameState(mode: 'daily' | 'free', currentDailyNumber?: numbe
           ? Date.now()
           : null;
 
+    const gameId =
+      typeof (state as GameState).gameId === 'string' && (state as GameState).gameId
+        ? (state as GameState).gameId
+        : `${mode}-${(state as GameState).dailyNumber}-${savedAt ?? Date.now()}`;
+
     return {
       ...(state as GameState),
       startedAt: inferredStart,
@@ -123,6 +128,7 @@ export function loadGameState(mode: 'daily' | 'free', currentDailyNumber?: numbe
       timerBaseElapsedMs: inferredTimerBaseElapsedMs,
       timerResumedAt: inferredTimerRunning ? inferredTimerResumedAt : null,
       timerToggledAt: typeof (state as GameState).timerToggledAt === 'number' ? (state as GameState).timerToggledAt : null,
+      gameId,
     };
   } catch (error) {
     console.error('Failed to load game state:', error);

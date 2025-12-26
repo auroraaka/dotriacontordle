@@ -58,7 +58,7 @@ export function Keyboard() {
                   flex items-center justify-center transition-colors duration-150
                   cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
                 `}
-                disabled={disabled || (key === 'ENTER' && isValidating)}
+                disabled={disabled}
               >
                 {key === 'BACKSPACE' ? <Delete className="w-5 h-5" /> : key === 'ENTER' ? <CornerDownLeft className="w-5 h-5" /> : key}
               </motion.button>

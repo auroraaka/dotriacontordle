@@ -21,6 +21,7 @@ export interface GameState {
   timerBaseElapsedMs: number;
   timerResumedAt: number | null;
   timerToggledAt: number | null;
+  gameId: string;
 }
 
 export interface GameStats {

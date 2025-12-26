@@ -70,6 +70,7 @@ function createInitialState(mode: 'daily' | 'free'): GameState {
     timerBaseElapsedMs: 0,
     timerResumedAt: null,
     timerToggledAt: null,
+    gameId: `${mode}-${dailyNumber}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
   };
 }
 
