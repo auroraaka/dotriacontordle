@@ -1,9 +1,10 @@
-const DATAMUSE_API = 'https://api.datamuse.com/words';
 const WORD_LENGTH = 6;
 const CACHE_KEY = 'dotriacontordle_word_cache';
 const CACHE_EXPIRY_HOURS = 24;
 const MIN_WORD_POOL_SIZE = 500;
 const MIN_VALID_WORDS_SIZE = 2000;
+
+import wordsData from './words.json';
 
 const pendingValidations = new Map<string, Promise<boolean>>();
 
@@ -50,73 +51,20 @@ class WordService {
   private async _doInitialize(): Promise<void> {
     if (this.isInitialized) return;
 
+    const localWords = (wordsData as string[]).map((w) => w.toUpperCase());
+    this.validWordsSet = new Set(localWords);
+    this.answerPool = [...localWords];
+
     const cached = this.loadFromCache();
     if (cached) {
-      this.validWordsSet = new Set(cached.validWords);
-      this.answerPool = cached.answerPool;
+      for (const w of cached.validWords) this.validWordsSet.add(w.toUpperCase());
+      this.answerPool = cached.answerPool.length > 0 ? cached.answerPool : this.answerPool;
       this.isInitialized = true;
       return;
     }
 
-    try {
-      await this.fetchAndCacheWords();
-      this.isInitialized = true;
-    } catch (error) {
-      console.error('Failed to fetch words from API, using fallback:', error);
-      this.validWordsSet = new Set(FALLBACK_VALID_WORDS);
-      this.answerPool = [...FALLBACK_ANSWERS];
-      this.isInitialized = true;
-    }
-  }
-
-  private async fetchAndCacheWords(): Promise<void> {
-    const queries = [
-      `${DATAMUSE_API}?sp=${'?'.repeat(WORD_LENGTH)}&max=1000&md=f`,
-      `${DATAMUSE_API}?ml=common&sp=${'?'.repeat(WORD_LENGTH)}&max=500`,
-      `${DATAMUSE_API}?ml=action&sp=${'?'.repeat(WORD_LENGTH)}&max=300`,
-      `${DATAMUSE_API}?ml=thing&sp=${'?'.repeat(WORD_LENGTH)}&max=300`,
-      `${DATAMUSE_API}?ml=place&sp=${'?'.repeat(WORD_LENGTH)}&max=300`,
-      `${DATAMUSE_API}?ml=feeling&sp=${'?'.repeat(WORD_LENGTH)}&max=200`,
-    ];
-
-    const allWords = new Set<string>();
-    const frequentWords: { word: string; freq: number }[] = [];
-
-    for (const url of queries) {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) continue;
-
-        const data: Array<{ word: string; tags?: string[] }> = await response.json();
-
-        for (const item of data) {
-          const word = item.word.toUpperCase();
-          if (word.length !== WORD_LENGTH || !/^[A-Z]+$/.test(word)) continue;
-
-          allWords.add(word);
-
-          const freqTag = item.tags?.find(t => t.startsWith('f:'));
-          if (freqTag) {
-            const freq = parseFloat(freqTag.slice(2));
-            frequentWords.push({ word, freq });
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to fetch from:', url, e);
-      }
-    }
-
-    frequentWords.sort((a, b) => b.freq - a.freq);
-    const topWords = frequentWords.slice(0, MIN_WORD_POOL_SIZE).map(w => w.word);
-
-    this.validWordsSet = new Set([...allWords, ...FALLBACK_VALID_WORDS]);
-    this.answerPool = topWords.length >= 100 ? topWords : [...FALLBACK_ANSWERS];
-
-    for (const word of this.answerPool) {
-      this.validWordsSet.add(word);
-    }
-
-    this.saveToCache();
+    for (const w of FALLBACK_VALID_WORDS) this.validWordsSet.add(w);
+    this.isInitialized = true;
   }
 
   async isValidWord(word: string): Promise<boolean> {
@@ -146,11 +94,11 @@ class WordService {
 
   private async validateWithApi(upperWord: string): Promise<boolean> {
     try {
-      const response = await fetch(`${DATAMUSE_API}?sp=${upperWord.toLowerCase()}&max=1`);
+      const response = await fetch(`/api/validate?word=${encodeURIComponent(upperWord)}`);
       if (!response.ok) return false;
 
-      const data: Array<{ word: string }> = await response.json();
-      const isValid = data.some(item => item.word.toUpperCase() === upperWord);
+      const data: { valid?: boolean } = await response.json();
+      const isValid = data.valid === true;
 
       if (isValid) {
         this.validWordsSet.add(upperWord);

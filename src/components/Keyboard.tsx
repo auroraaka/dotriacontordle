@@ -7,8 +7,9 @@ import { useGame } from '@/context/GameContext';
 import { useKeyboard } from '@/hooks/useKeyboard';
 
 export function Keyboard() {
-  const { state, addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard } = useGame();
+  const { state, isValidating, addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard } = useGame();
   const { keyboardState, gameStatus } = state;
+  const disabled = gameStatus !== 'playing' || isValidating;
 
   useKeyboard({
     onLetter: addLetter,
@@ -16,11 +17,11 @@ export function Keyboard() {
     onBackspace: removeLetter,
     onSpace: toggleTimer,
     onBoardSelect: setExpandedBoard,
-    disabled: gameStatus !== 'playing',
+    disabled,
   });
 
   const handleKeyClick = (key: string) => {
-    if (gameStatus !== 'playing') return;
+    if (disabled) return;
 
     if (key === 'ENTER') submitGuess();
     else if (key === 'BACKSPACE') removeLetter();
@@ -53,7 +54,7 @@ export function Keyboard() {
                   flex items-center justify-center transition-colors duration-150
                   cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
                 `}
-                disabled={gameStatus !== 'playing'}
+                disabled={disabled}
               >
                 {key === 'BACKSPACE' ? <Delete className="w-5 h-5" /> : key === 'ENTER' ? <CornerDownLeft className="w-5 h-5" /> : key}
               </motion.button>

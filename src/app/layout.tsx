@@ -15,10 +15,16 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dotriacontordle - 32 Word Puzzle Game",
-  description: "The ultimate word puzzle challenge! Guess 32 six-letter words in 37 tries. A Wordle variant for true puzzle enthusiasts.",
+  metadataBase: new URL("https://dotriacontordle.com"),
+  title: "Dotriacontordle",
+  description:
+    "The ultimate word puzzle challenge! Guess 32 six-letter words in 37 tries. A Wordle variant for true puzzle enthusiasts.",
   keywords: ["wordle", "word game", "puzzle", "dotriacontordle", "32 words", "word puzzle"],
   authors: [{ name: "Dotriacontordle" }],
+  applicationName: "Dotriacontordle",
+  appleWebApp: {
+    title: "Dotriacontordle",
+  },
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -27,7 +33,8 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Dotriacontordle - 32 Word Puzzle Game",
+    title: "Dotriacontordle",
+    siteName: "Dotriacontordle",
     description: "The ultimate word puzzle challenge! Guess 32 six-letter words in 37 tries.",
     type: "website",
     url: "https://dotriacontordle.com",
@@ -35,7 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dotriacontordle - 32 Word Puzzle Game",
+    title: "Dotriacontordle",
     description: "The ultimate word puzzle challenge! Guess 32 six-letter words in 37 tries.",
   },
 };

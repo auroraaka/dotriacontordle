@@ -26,7 +26,7 @@ import {
 type GameAction =
   | { type: 'ADD_LETTER'; letter: string }
   | { type: 'REMOVE_LETTER' }
-  | { type: 'SUBMIT_GUESS' }
+  | { type: 'SUBMIT_GUESS'; guess: string }
   | { type: 'TOGGLE_TIMER' }
   | { type: 'SET_EXPANDED_BOARD'; boardIndex: number | null }
   | { type: 'NEW_GAME'; mode: 'daily' | 'free' }
@@ -100,19 +100,20 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'SUBMIT_GUESS': {
       if (state.gameStatus !== 'playing') return state;
-      if (state.currentGuess.length !== WORD_LENGTH) return state;
-      if (state.guesses.includes(state.currentGuess)) return state;
+      const guess = action.guess.toUpperCase();
+      if (guess.length !== WORD_LENGTH) return state;
+      if (state.guesses.includes(guess)) return state;
 
       const now = Date.now();
       const shouldStart = state.startedAt === null;
 
-      const newGuesses = [...state.guesses, state.currentGuess];
+      const newGuesses = [...state.guesses, guess];
       const guessIndex = newGuesses.length - 1;
 
       const newBoards: BoardState[] = state.boards.map((board) => {
         if (board.solved) return board;
 
-        const evaluation = evaluateGuess(state.currentGuess, board.answer);
+        const evaluation = evaluateGuess(guess, board.answer);
         if (evaluation.isCorrect) {
           return { ...board, solved: true, solvedAtGuess: guessIndex };
         }
@@ -121,8 +122,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       let newKeyboardState = { ...state.keyboardState };
       for (const board of newBoards) {
-        const evaluation = evaluateGuess(state.currentGuess, board.answer);
-        newKeyboardState = updateKeyboardState(newKeyboardState, state.currentGuess, evaluation.states);
+        const evaluation = evaluateGuess(guess, board.answer);
+        newKeyboardState = updateKeyboardState(newKeyboardState, guess, evaluation.states);
       }
 
       const allSolved = newBoards.every((b) => b.solved);
@@ -142,7 +143,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         boards: newBoards,
         guesses: newGuesses,
-        currentGuess: '',
+        currentGuess: state.currentGuess === guess ? '' : state.currentGuess,
         keyboardState: newKeyboardState,
         gameStatus: newStatus,
         startedAt: shouldStart ? now : state.startedAt,
@@ -210,6 +211,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [isLoadingWords, setIsLoadingWords] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
   const errorTimeoutRef = useRef<number | null>(null);
+  const isValidatingRef = useRef(false);
 
   const setTransientError = useCallback((message: string) => {
     setError(message);
@@ -307,29 +309,31 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const submitGuess = useCallback(async () => {
     void primeFeedback();
+    if (isValidatingRef.current) return;
+    const guess = state.currentGuess;
 
-    if (state.currentGuess.length !== WORD_LENGTH) {
+    if (guess.length !== WORD_LENGTH) {
       setTransientError('Not enough letters');
       void triggerFeedback('error');
       return;
     }
 
-    if (state.guesses.includes(state.currentGuess)) {
+    if (state.guesses.includes(guess)) {
       setTransientError('Already guessed');
       void triggerFeedback('error');
       return;
     }
     
+    isValidatingRef.current = true;
     setIsValidating(true);
     try {
-      const valid = await isValidWord(state.currentGuess);
+      const valid = await isValidWord(guess);
       if (!valid) {
         setTransientError('Not a word');
         void triggerFeedback('error');
         return;
       }
 
-      const guess = state.currentGuess;
       const nextGuessesLen = state.guesses.length + 1;
       const outOfGuesses = nextGuessesLen >= MAX_GUESSES;
 
@@ -343,7 +347,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const allSolved = alreadySolvedCount + willSolveCount === state.boards.length;
 
       setError(null);
-      dispatch({ type: 'SUBMIT_GUESS' });
+      dispatch({ type: 'SUBMIT_GUESS', guess });
 
       if (allSolved) void triggerFeedback('win');
       else if (outOfGuesses) void triggerFeedback('lose');
@@ -355,6 +359,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       void triggerFeedback('error');
     } finally {
       setIsValidating(false);
+      isValidatingRef.current = false;
     }
   }, [state.currentGuess, state.guesses, state.boards, setTransientError]);
 
