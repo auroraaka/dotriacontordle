@@ -3,6 +3,7 @@ import { GameState, GameStats, GameSettings, BoardState, MAX_GUESSES } from '@/t
 const STORAGE_KEYS = {
   DAILY_STATE: 'dotriacontordle_daily_state',
   FREE_STATE: 'dotriacontordle_free_state',
+  LAST_MODE: 'dotriacontordle_last_mode',
   STATS: 'dotriacontordle_stats',
   SETTINGS: 'dotriacontordle_settings',
 } as const;
@@ -54,8 +55,21 @@ export function saveGameState(state: GameState, mode: 'daily' | 'free'): void {
   
   try {
     localStorage.setItem(key, JSON.stringify(stateToSave));
+    localStorage.setItem(STORAGE_KEYS.LAST_MODE, mode);
   } catch (error) {
     console.error('Failed to save game state:', error);
+  }
+}
+
+export function getLastPlayedMode(): 'daily' | 'free' {
+  if (!isStorageAvailable()) return 'daily';
+  
+  try {
+    const mode = localStorage.getItem(STORAGE_KEYS.LAST_MODE);
+    if (mode === 'free') return 'free';
+    return 'daily';
+  } catch {
+    return 'daily';
   }
 }
 

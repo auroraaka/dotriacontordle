@@ -21,6 +21,7 @@ import {
   loadStats,
   updateStatsAfterGame,
   createInitialBoards,
+  getLastPlayedMode,
 } from '@/lib/storage';
 
 type GameAction =
@@ -263,8 +264,19 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (isLoadingWords) return;
     
     const dailyNumber = getDailyNumber();
-    const savedDaily = loadGameState('daily', dailyNumber);
+    const lastMode = getLastPlayedMode();
+    
+    if (lastMode === 'free') {
+      const savedFree = loadGameState('free');
+      if (savedFree && savedFree.gameStatus === 'playing') {
+        dispatch({ type: 'LOAD_STATE', state: savedFree });
+        setStats(loadStats());
+        setIsInitialized(true);
+        return;
+      }
+    }
 
+    const savedDaily = loadGameState('daily', dailyNumber);
     if (savedDaily) {
       dispatch({ type: 'LOAD_STATE', state: savedDaily });
     } else {
