@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronLeft, ChevronRight, Delete, CornerDownLeft } from 'lucide-react';
 import { WordGrid } from './WordGrid';
 import { Tile } from './Tile';
-import { useGame } from '@/context/GameContext';
+import { useGameActions, useGameAux, useGameBoards } from '@/context/GameContext';
 import { TileState, KEYBOARD_ROWS, KEY_STATE_STYLES } from '@/types/game';
 import { loadSettings } from '@/lib/storage';
 import { evaluateGuess, updateKeyboardState } from '@/lib/evaluate';
@@ -17,9 +17,10 @@ interface ExpandedBoardProps {
 }
 
 export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoardProps) {
-  const { state, error, addLetter, removeLetter, submitGuess, getEvaluationForBoard } = useGame();
-  const board = state.boards[boardIndex];
-  const { gameStatus, guesses } = state;
+  const { boards, gameStatus, guesses } = useGameBoards();
+  const { error } = useGameAux();
+  const { addLetter, removeLetter, submitGuess, getEvaluationForBoard } = useGameActions();
+  const board = boards[boardIndex];
 
   const boardKeyboardState = useMemo(() => {
     let keyboardState: Record<string, TileState> = {};
@@ -55,7 +56,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
   }, [board.answer, board.solved, board.solvedAtGuess, boardIndex, getEvaluationForBoard, guesses.length]);
   const [glowMode, setGlowMode] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const prevGuessesLenRef = useRef<number>(state.guesses.length);
+  const prevGuessesLenRef = useRef<number>(guesses.length);
   const prevBoardIndexRef = useRef<number>(boardIndex);
 
   useEffect(() => {
@@ -86,7 +87,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
     if (!el) return;
 
     const prevLen = prevGuessesLenRef.current;
-    const nextLen = state.guesses.length;
+    const nextLen = guesses.length;
     const boardChanged = prevBoardIndexRef.current !== boardIndex;
     const guessJustCommitted = nextLen > prevLen;
 
@@ -97,7 +98,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
 
     prevGuessesLenRef.current = nextLen;
     prevBoardIndexRef.current = boardIndex;
-  }, [boardIndex, state.guesses.length]);
+  }, [boardIndex, guesses.length]);
 
   const handleKeyClick = (key: string) => {
     if (gameStatus !== 'playing') return;
@@ -145,14 +146,14 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
                   SOLVED
                 </span>
               )}
-              {state.gameStatus === 'lost' && !board.solved && (
+              {gameStatus === 'lost' && !board.solved && (
                 <span className="px-2 py-1 bg-red-500/20 text-red-400 rounded-md text-sm font-medium">
                   {board.answer}
                 </span>
               )}
             </div>
 
-            {!board.solved && state.gameStatus === 'playing' && (
+            {!board.solved && gameStatus === 'playing' && (
               <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
                 <div className="flex gap-0.5">
                   {indicatorBestByPosition.map((s, idx) => (
@@ -182,7 +183,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
               className={`self-start max-h-full overflow-y-auto p-2 mb-2 rounded-lg bg-bg-tertiary/50 no-scrollbar ${
                 board.solved 
                   ? 'ring-2 ring-tile-correct/50' 
-                  : state.gameStatus === 'lost' 
+                  : gameStatus === 'lost' 
                   ? 'ring-2 ring-red-500/50' 
                   : ''
               }`}

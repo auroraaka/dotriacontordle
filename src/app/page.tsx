@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GameProvider, useGame } from '@/context/GameContext';
+import { GameProvider, useGameAux, useGameBoards, useGameInput } from '@/context/GameContext';
 import { Header } from '@/components/Header';
 import { GameBoard } from '@/components/GameBoard';
 import { Keyboard } from '@/components/Keyboard';
@@ -10,7 +10,9 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { loadSettings } from '@/lib/storage';
 
 function GameContent() {
-  const { state, error, isLoadingWords } = useGame();
+  const { boards, guesses, gameStatus } = useGameBoards();
+  const { currentGuess } = useGameInput();
+  const { error, isLoadingWords } = useGameAux();
   const [glowMode, setGlowMode] = useState(false);
 
   useEffect(() => {
@@ -50,19 +52,19 @@ function GameContent() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {state.gameStatus !== 'playing' && (
+        {gameStatus !== 'playing' && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className={`w-full py-2 text-center font-bold text-base shrink-0 ${
-              state.gameStatus === 'won' ? 'bg-tile-correct/20 text-tile-correct' : 'bg-red-500/20 text-red-400'
+              gameStatus === 'won' ? 'bg-tile-correct/20 text-tile-correct' : 'bg-red-500/20 text-red-400'
             }`}
           >
-            {state.gameStatus === 'won' ? (
-              <>🎉 Congratulations! You solved all 32 words in {state.guesses.length} guesses!</>
+            {gameStatus === 'won' ? (
+              <>🎉 Congratulations! You solved all 32 words in {guesses.length} guesses!</>
             ) : (
-              <>Game Over - You solved {state.boards.filter(b => b.solved).length}/32 words</>
+              <>Game Over - You solved {boards.filter((b) => b.solved).length}/32 words</>
             )}
           </motion.div>
         )}
@@ -74,18 +76,18 @@ function GameContent() {
         </div>
 
         <div className="shrink-0 pb-6 sm:pb-8 px-2 sm:px-4">
-          {state.gameStatus === 'playing' && (
+          {gameStatus === 'playing' && (
             <div className="flex justify-center mb-4 sm:mb-5 mt-4 sm:mt-5">
               <div className="flex gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl bg-bg-tertiary/60 backdrop-blur-sm border border-white/5">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
                     className={`w-10 h-12 sm:w-12 sm:h-14 rounded-lg font-bold text-2xl sm:text-3xl flex items-center justify-center uppercase transition-all duration-150 border-2 ${
-                      state.currentGuess[i] 
+                      currentGuess[i]
                         ? '' 
                         : 'bg-tile-empty/30 text-text-secondary/20 border-tile-border/50'
                     }`}
-                    style={state.currentGuess[i] ? (glowMode ? {
+                    style={currentGuess[i] ? (glowMode ? {
                       background: 'rgba(255, 0, 255, 0.2)',
                       color: '#ff00ff',
                       borderColor: '#ff00ff',
@@ -98,7 +100,7 @@ function GameContent() {
                       boxShadow: '0 0 15px rgba(0, 255, 255, 0.3)',
                     }) : undefined}
                   >
-                    {state.currentGuess[i] || ''}
+                    {currentGuess[i] || ''}
                   </div>
                 ))}
               </div>

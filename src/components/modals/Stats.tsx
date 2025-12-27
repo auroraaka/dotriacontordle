@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Share2 } from 'lucide-react';
-import { useGame } from '@/context/GameContext';
+import { useGameAux, useGameBoards } from '@/context/GameContext';
 import { formatTimeUntilNextDaily } from '@/lib/daily';
 import { useEffect, useState } from 'react';
 
@@ -12,7 +12,8 @@ interface StatsModalProps {
 }
 
 export function StatsModal({ isOpen, onClose }: StatsModalProps) {
-  const { stats, state } = useGame();
+  const state = useGameBoards();
+  const { stats } = useGameAux();
   const [timeUntilNext, setTimeUntilNext] = useState(formatTimeUntilNextDaily());
 
   useEffect(() => {

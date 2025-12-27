@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { loadSettings, saveSettings } from '@/lib/storage';
 import { GameSettings } from '@/types/game';
-import { useGame } from '@/context/GameContext';
+import { useGameActions } from '@/context/GameContext';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -13,7 +13,7 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const { newGame } = useGame();
+  const { newGame } = useGameActions();
   const [settings, setSettings] = useState<GameSettings>(() => loadSettings());
 
   const updateSetting = <K extends keyof GameSettings>(key: K, value: GameSettings[K]) => {

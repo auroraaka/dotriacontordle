@@ -3,7 +3,7 @@
 import { memo, useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Tile, TileWithPop } from './Tile';
-import { useGame } from '@/context/GameContext';
+import { useGameActions, useGameBoards, useGameInput } from '@/context/GameContext';
 import { TileState, WORD_LENGTH } from '@/types/game';
 
 interface WordGridProps {
@@ -25,9 +25,10 @@ export const WordGrid = memo(function WordGrid({
   noBg = false,
   glowMode = false,
 }: WordGridProps) {
-  const { state, getEvaluationForBoard } = useGame();
-  const board = state.boards[boardIndex];
-  const { guesses, currentGuess } = state;
+  const { boards, guesses, gameStatus } = useGameBoards();
+  const { currentGuess } = useGameInput();
+  const { getEvaluationForBoard } = useGameActions();
+  const board = boards[boardIndex];
 
   const relevantGuesses = board.solved && board.solvedAtGuess !== null
     ? guesses.slice(0, board.solvedAtGuess + 1)
@@ -39,7 +40,7 @@ export const WordGrid = memo(function WordGrid({
     ? ''
     : board.solved
     ? 'ring-2 ring-tile-correct/50'
-    : state.gameStatus === 'lost'
+    : gameStatus === 'lost'
     ? 'ring-2 ring-red-500/50'
     : '';
 
@@ -67,7 +68,7 @@ export const WordGrid = memo(function WordGrid({
         );
       })}
 
-      {showCurrentGuess && !board.solved && state.gameStatus === 'playing' && (
+      {showCurrentGuess && !board.solved && gameStatus === 'playing' && (
         <div className={`flex ${mini ? 'gap-px' : 'gap-0.5'}`}>
           {Array.from({ length: WORD_LENGTH }).map((_, idx) => (
             <TileWithPop
@@ -81,7 +82,7 @@ export const WordGrid = memo(function WordGrid({
         </div>
       )}
 
-      {mini && !board.solved && state.gameStatus === 'playing' && (
+      {mini && !board.solved && gameStatus === 'playing' && (
         <div className="flex gap-px">
           {Array.from({ length: WORD_LENGTH }).map((_, idx) => (
             <Tile key={idx} letter="" state="empty" size="mini" animate={false} />
@@ -99,9 +100,9 @@ export const MiniWordGrid = memo(function MiniWordGrid({
   boardIndex: number;
   onClick: () => void;
 }) {
-  const { state, getEvaluationForBoard } = useGame();
-  const board = state.boards[boardIndex];
-  const { guesses } = state;
+  const { boards, guesses, gameStatus } = useGameBoards();
+  const { getEvaluationForBoard } = useGameActions();
+  const board = boards[boardIndex];
 
   const relevantGuesses = board.solved && board.solvedAtGuess !== null
     ? guesses.slice(0, board.solvedAtGuess + 1)
@@ -192,7 +193,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
 
   const statusClass = board.solved
     ? 'ring-2 ring-tile-correct shadow-glow-green'
-    : state.gameStatus === 'lost'
+    : gameStatus === 'lost'
     ? 'ring-2 ring-red-500'
     : 'hover:ring-2 hover:ring-accent/50';
 

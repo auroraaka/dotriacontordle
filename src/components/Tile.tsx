@@ -48,6 +48,25 @@ export function Tile({ letter, state, delay = 0, size = 'normal', animate = true
   );
 }
 
+const POP_ANIMATION = { scale: [1, 1.1, 1] };
+const NO_ANIMATION = {};
+const POP_TRANSITION = { duration: 0.1 };
+
+const GLOW_STYLE = {
+  background: 'var(--tile-active-bg)',
+  color: 'var(--tile-active-color)',
+  borderColor: 'var(--tile-active-border)',
+  boxShadow: 'var(--tile-active-shadow)',
+  textShadow: 'var(--tile-active-text-shadow)',
+};
+
+const NORMAL_ACTIVE_STYLE = {
+  background: 'var(--tile-active-bg)',
+  color: 'var(--tile-active-color)',
+  borderColor: 'var(--tile-active-border)',
+  boxShadow: 'var(--tile-active-shadow)',
+};
+
 export function TileWithPop({ letter, state, size = 'normal', glowMode = false }: TileProps) {
   const hasLetter = letter !== '';
   const isTbd = state === 'tbd' && hasLetter;
@@ -56,20 +75,9 @@ export function TileWithPop({ letter, state, size = 'normal', glowMode = false }
     <motion.div
       className={`flex items-center justify-center font-bold uppercase select-none ${stateStyles[state]} ${sizeStyles[size]}`}
       initial={false}
-      animate={isTbd ? { scale: [1, 1.1, 1] } : {}}
-      transition={{ duration: 0.1 }}
-      style={isTbd ? (glowMode ? {
-        background: 'var(--tile-active-bg)',
-        color: 'var(--tile-active-color)',
-        borderColor: 'var(--tile-active-border)',
-        boxShadow: 'var(--tile-active-shadow)',
-        textShadow: 'var(--tile-active-text-shadow)',
-      } : {
-        background: 'var(--tile-active-bg)',
-        color: 'var(--tile-active-color)',
-        borderColor: 'var(--tile-active-border)',
-        boxShadow: 'var(--tile-active-shadow)',
-      }) : undefined}
+      animate={isTbd ? POP_ANIMATION : NO_ANIMATION}
+      transition={POP_TRANSITION}
+      style={isTbd ? (glowMode ? GLOW_STYLE : NORMAL_ACTIVE_STYLE) : undefined}
     >
       {letter}
     </motion.div>

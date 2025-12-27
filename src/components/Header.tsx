@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { HelpCircle, BarChart3, Settings, Clock, Pause, Play, Volume2, VolumeX } from 'lucide-react';
-import { useGame } from '@/context/GameContext';
+import { useGameActions, useGameBoards } from '@/context/GameContext';
 import { HowToPlayModal } from './modals/HowToPlay';
 import { StatsModal } from './modals/Stats';
 import { SettingsModal } from './modals/Settings';
@@ -25,7 +25,8 @@ function formatElapsed(ms: number): string {
 }
 
 export function Header() {
-  const { state, newGame, toggleTimer } = useGame();
+  const state = useGameBoards();
+  const { newGame, toggleTimer } = useGameActions();
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showSettings, setShowSettings] = useState(false);

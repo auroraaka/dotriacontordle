@@ -1,21 +1,31 @@
 'use client';
 
+import { useCallback, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Delete, CornerDownLeft } from 'lucide-react';
 import { KEYBOARD_ROWS, KEY_STATE_STYLES } from '@/types/game';
-import { useGame } from '@/context/GameContext';
+import { useGameActions, useGameAux, useGameBoards } from '@/context/GameContext';
 import { useKeyboard } from '@/hooks/useKeyboard';
 
 export function Keyboard() {
-  const { state, isValidating, addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard } = useGame();
-  const { keyboardState, gameStatus } = state;
+  const { keyboardState, gameStatus } = useGameBoards();
+  const { isValidating } = useGameAux();
+  const { addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard } = useGameActions();
   const disabled = gameStatus !== 'playing';
+
+  const isValidatingRef = useRef(isValidating);
+  isValidatingRef.current = isValidating;
+
+  const submitGuessRef = useRef(submitGuess);
+  submitGuessRef.current = submitGuess;
+
+  const onEnter = useCallback(() => {
+    if (!isValidatingRef.current) submitGuessRef.current();
+  }, []);
 
   useKeyboard({
     onLetter: addLetter,
-    onEnter: () => {
-      if (!isValidating) submitGuess();
-    },
+    onEnter,
     onBackspace: removeLetter,
     onSpace: toggleTimer,
     onBoardSelect: setExpandedBoard,
