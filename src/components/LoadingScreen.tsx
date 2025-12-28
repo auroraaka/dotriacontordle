@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 
 export function LoadingScreen() {
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-bg-primary overflow-hidden">
+    <div className="h-screen h-[100dvh] flex flex-col items-center justify-center bg-bg-primary overflow-hidden">
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

@@ -63,8 +63,8 @@ export function Keyboard() {
                 whileTap={{ scale: 0.95 }}
                 className={`
                   ${isSpecial ? specialStyle : KEY_STATE_STYLES[keyState]}
-                  ${isSpecial ? 'px-2 sm:px-3 md:px-4 text-[10px] sm:text-xs' : 'flex-1 max-w-[44px] sm:max-w-[52px]'}
-                  h-11 sm:h-12 md:h-14 rounded-md font-semibold text-white text-sm sm:text-base
+                  ${isSpecial ? 'px-1.5 xs:px-2 sm:px-3 md:px-4 text-[10px] sm:text-xs' : 'flex-1 max-w-[36px] xs:max-w-[40px] sm:max-w-[52px]'}
+                  h-9 xs:h-10 sm:h-12 md:h-14 rounded-md font-semibold text-white text-[11px] xs:text-sm sm:text-base
                   flex items-center justify-center transition-colors duration-150
                   cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
                 `}

@@ -35,7 +35,7 @@ function GameContent() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-bg-primary overflow-hidden">
+    <div className="h-screen h-[100dvh] flex flex-col bg-bg-primary overflow-hidden">
       <Header />
 
       <AnimatePresence>
@@ -71,18 +71,18 @@ function GameContent() {
       </AnimatePresence>
 
       <main className="flex-1 flex flex-col min-h-0">
-        <div className="flex-1 min-h-0 flex items-center justify-center p-2 sm:p-4">
+        <div className="flex-1 min-h-0 flex items-center justify-center p-1 xs:p-2 sm:p-4">
           <GameBoard />
         </div>
 
-        <div className="shrink-0 pb-6 sm:pb-8 px-2 sm:px-4">
+        <div className="shrink-0 pb-2 xs:pb-3 sm:pb-8 px-2 sm:px-4">
           {gameStatus === 'playing' && (
-            <div className="flex justify-center mb-4 sm:mb-5 mt-4 sm:mt-5">
-              <div className="flex gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl bg-bg-tertiary/60 backdrop-blur-sm border border-white/5">
+            <div className="flex justify-center my-2 xs:my-3 sm:my-5">
+              <div className="flex gap-1 xs:gap-1.5 sm:gap-2 p-1.5 xs:p-2 sm:p-3 rounded-xl bg-bg-tertiary/60 backdrop-blur-sm border border-white/5">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
-                    className={`w-10 h-12 sm:w-12 sm:h-14 rounded-lg font-bold text-2xl sm:text-3xl flex items-center justify-center uppercase transition-all duration-150 border-2 ${
+                    className={`w-8 h-10 xs:w-9 xs:h-11 sm:w-12 sm:h-14 rounded-lg font-bold text-xl xs:text-2xl sm:text-3xl flex items-center justify-center uppercase transition-all duration-150 border-2 ${
                       currentGuess[i]
                         ? '' 
                         : 'bg-tile-empty/30 text-text-secondary/20 border-tile-border/50'

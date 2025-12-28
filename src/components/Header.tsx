@@ -99,7 +99,7 @@ export function Header() {
   return (
     <>
       <header className="w-full border-b border-header-border bg-bg-secondary/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 py-2 sm:px-4 sm:py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
               <span className="text-accent">DOTRIA</span>
@@ -163,7 +163,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="sm:hidden border-t border-header-border px-4 py-2 flex justify-center gap-6 text-xs">
+        <div className="sm:hidden border-t border-header-border px-3 py-1.5 flex justify-center gap-6 text-xs">
           <span className="text-text-secondary flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
             <span className={`${timerActive ? 'text-accent' : 'text-text-secondary'} font-bold tabular-nums`}>
