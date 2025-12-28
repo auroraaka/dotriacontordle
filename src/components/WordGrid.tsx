@@ -14,6 +14,7 @@ interface WordGridProps {
   hideStatusRing?: boolean;
   noBg?: boolean;
   glowMode?: boolean;
+  tileSize?: 'normal' | 'compact' | 'large';
 }
 
 export const WordGrid = memo(function WordGrid({
@@ -24,6 +25,7 @@ export const WordGrid = memo(function WordGrid({
   hideStatusRing = false,
   noBg = false,
   glowMode = false,
+  tileSize = 'normal',
 }: WordGridProps) {
   const { boards, guesses, gameStatus } = useGameBoards();
   const { currentGuess } = useGameInput();
@@ -60,7 +62,7 @@ export const WordGrid = memo(function WordGrid({
                 letter={letter}
                 state={evaluation[letterIdx]}
                 delay={0}
-                size={mini ? 'mini' : 'normal'}
+                size={mini ? 'mini' : tileSize}
                 animate={false}
               />
             ))}
@@ -75,7 +77,7 @@ export const WordGrid = memo(function WordGrid({
               key={idx}
               letter={currentGuess[idx] || ''}
               state={currentGuess[idx] ? 'tbd' : 'empty'}
-              size={mini ? 'mini' : 'normal'}
+              size={mini ? 'mini' : tileSize}
               glowMode={glowMode}
             />
           ))}
@@ -231,7 +233,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
         {boardIndex + 1}
       </span>
 
-      {indicatorSummary && (
+      {indicatorSummary && !board.solved && (
         <div
           className="absolute -top-1 left-1/2 -translate-x-1/2 sm:-top-1.5 md:-top-2 flex items-center gap-0.5 pointer-events-none select-none z-10"
           aria-label={`Board ${boardIndex + 1}: ${indicatorSummary.correct} green, ${indicatorSummary.present} yellow`}

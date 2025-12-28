@@ -7,7 +7,7 @@ interface TileProps {
   letter: string;
   state: TileState;
   delay?: number;
-  size?: 'mini' | 'normal' | 'large';
+  size?: 'mini' | 'compact' | 'normal' | 'large';
   animate?: boolean;
   glowMode?: boolean;
 }
@@ -22,6 +22,7 @@ const stateStyles: Record<TileState, string> = {
 
 const sizeStyles = {
   mini: 'w-4 h-4 text-[8px] border',
+  compact: 'w-8 h-8 text-base border-2 sm:w-12 sm:h-12 sm:text-xl',
   normal: 'w-10 h-10 text-lg border-2 sm:w-12 sm:h-12 sm:text-xl',
   large: 'w-14 h-14 text-2xl border-2',
 };

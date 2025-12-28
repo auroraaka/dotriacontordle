@@ -161,7 +161,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
                       key={idx}
                       letter={s === 'correct' ? board.answer[idx] : ''}
                       state={s === 'correct' ? 'correct' : s === 'present' ? 'present' : 'empty'}
-                      size="normal"
+                      size="compact"
                       animate={false}
                     />
                   ))}
@@ -188,7 +188,14 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
                   : ''
               }`}
             >
-              <WordGrid boardIndex={boardIndex} showCurrentGuess hideStatusRing noBg glowMode={glowMode} />
+              <WordGrid
+                boardIndex={boardIndex}
+                showCurrentGuess
+                hideStatusRing
+                noBg
+                glowMode={glowMode}
+                tileSize="compact"
+              />
             </div>
           </div>
 
