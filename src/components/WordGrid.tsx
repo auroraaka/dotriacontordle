@@ -235,7 +235,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
 
       {indicatorSummary && !board.solved && (
         <div
-          className="absolute -top-1 left-1/2 -translate-x-1/2 sm:-top-1.5 md:-top-2 flex items-center gap-0.5 pointer-events-none select-none z-10"
+          className="absolute -top-1 right-1 sm:-top-1.5 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto md:-top-2 flex items-center gap-0.5 pointer-events-none select-none z-10"
           aria-label={`Board ${boardIndex + 1}: ${indicatorSummary.correct} green, ${indicatorSummary.present} yellow`}
           title={`${indicatorSummary.correct} green • ${indicatorSummary.present} yellow (cumulative)`}
         >
