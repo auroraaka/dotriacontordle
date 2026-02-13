@@ -8,7 +8,7 @@ import { useGameActions, useGameAux, useGameBoards } from '@/context/GameContext
 import { useKeyboard } from '@/hooks/useKeyboard';
 
 export function Keyboard() {
-  const { keyboardState, gameStatus } = useGameBoards();
+  const { keyboardState, gameStatus, boards } = useGameBoards();
   const { isValidating } = useGameAux();
   const { addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard } = useGameActions();
   const disabled = gameStatus !== 'playing';
@@ -23,6 +23,7 @@ export function Keyboard() {
     onBackspace: removeLetter,
     onSpace: toggleTimer,
     onBoardSelect: setExpandedBoard,
+    maxBoardNumber: boards.length,
     disabled,
   });
 

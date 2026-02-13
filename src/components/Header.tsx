@@ -108,7 +108,7 @@ export function Header() {
               <span className="text-text-primary">CONTORDLE</span>
             </h1>
             <span className="text-xs text-text-secondary hidden sm:inline">
-              32 words • 6 letters • 37 guesses
+              {state.config.boardCount} words • {state.config.wordLength} letters • {state.config.maxGuesses} guesses
             </span>
           </div>
 
@@ -133,10 +133,10 @@ export function Header() {
                 </button>
               </span>
               <span className="text-text-secondary">
-                Solved: <span className="text-accent font-bold">{solvedCount}/32</span>
+                Solved: <span className="text-accent font-bold">{solvedCount}/{state.boards.length}</span>
               </span>
               <span className="text-text-secondary">
-                Guesses: <span className="text-accent font-bold">{state.guesses.length}/37</span>
+                Guesses: <span className="text-accent font-bold">{state.guesses.length}/{state.config.maxGuesses}</span>
               </span>
             </div>
 
@@ -191,10 +191,10 @@ export function Header() {
             </button>
           </span>
           <span className="text-text-secondary">
-            Solved: <span className="text-accent font-bold">{solvedCount}/32</span>
+            Solved: <span className="text-accent font-bold">{solvedCount}/{state.boards.length}</span>
           </span>
           <span className="text-text-secondary">
-            Guesses: <span className="text-accent font-bold">{state.guesses.length}/37</span>
+            Guesses: <span className="text-accent font-bold">{state.guesses.length}/{state.config.maxGuesses}</span>
           </span>
         </div>
       </header>

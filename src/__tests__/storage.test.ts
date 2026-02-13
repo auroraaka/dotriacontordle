@@ -10,6 +10,7 @@ import {
   createInitialBoards,
 } from '@/lib/storage';
 import { GameState, GameStats, GameSettings, MAX_GUESSES } from '@/types/game';
+import { DEFAULT_GAME_CONFIG } from '@/lib/gameConfig';
 
 describe('Game State Storage', () => {
   beforeEach(() => {
@@ -17,6 +18,7 @@ describe('Game State Storage', () => {
   });
 
   const mockGameState: GameState = {
+    config: DEFAULT_GAME_CONFIG,
     boards: [{ answer: 'CASTLE', solved: false, solvedAtGuess: null }],
     guesses: ['DRAGON'],
     currentGuess: 'CAS',
@@ -62,6 +64,16 @@ describe('Game State Storage', () => {
   it('returns null when no state saved', () => {
     const loaded = loadGameState('daily', 1);
     expect(loaded).toBeNull();
+  });
+
+  it('does not delete v2 daily state key when loading', () => {
+    saveGameState(mockGameState, 'daily');
+    const v2Key = `dotriacontordle_daily_state_v2_${DEFAULT_GAME_CONFIG.profileId}_${mockGameState.dailyNumber}`;
+
+    expect(localStorage.getItem(v2Key)).not.toBeNull();
+    const loaded = loadGameState('daily', mockGameState.dailyNumber, DEFAULT_GAME_CONFIG);
+    expect(loaded).not.toBeNull();
+    expect(localStorage.getItem(v2Key)).not.toBeNull();
   });
 });
 
@@ -189,16 +201,28 @@ describe('Settings Storage', () => {
     const settings = loadSettings();
     expect(settings.glowMode).toBe(false);
     expect(settings.feedbackEnabled).toBe(true);
+    expect(settings.preferredWordLength).toBe(DEFAULT_GAME_CONFIG.wordLength);
+    expect(settings.preferredBoardCount).toBe(DEFAULT_GAME_CONFIG.boardCount);
+    expect(settings.preferredMaxGuesses).toBe(DEFAULT_GAME_CONFIG.maxGuesses);
   });
 
   it('saves and loads settings', () => {
-    const settings: GameSettings = { glowMode: true, feedbackEnabled: false };
+    const settings: GameSettings = {
+      glowMode: true,
+      feedbackEnabled: false,
+      preferredWordLength: 5,
+      preferredBoardCount: 16,
+      preferredMaxGuesses: 20,
+    };
     
     saveSettings(settings);
     const loaded = loadSettings();
     
     expect(loaded.glowMode).toBe(true);
     expect(loaded.feedbackEnabled).toBe(false);
+    expect(loaded.preferredWordLength).toBe(5);
+    expect(loaded.preferredBoardCount).toBe(16);
+    expect(loaded.preferredMaxGuesses).toBe(20);
   });
 });
 

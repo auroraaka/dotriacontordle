@@ -1,14 +1,14 @@
-import { TileState, EvaluationResult, WORD_LENGTH } from '@/types/game';
+import { TileState, EvaluationResult } from '@/types/game';
 
-export function evaluateGuess(guess: string, answer: string): EvaluationResult {
+export function evaluateGuess(guess: string, answer: string, wordLength = answer.length): EvaluationResult {
   const guessUpper = guess.toUpperCase();
   const answerUpper = answer.toUpperCase();
   
-  if (guessUpper.length !== WORD_LENGTH || answerUpper.length !== WORD_LENGTH) {
-    throw new Error(`Words must be ${WORD_LENGTH} letters`);
+  if (guessUpper.length !== wordLength || answerUpper.length !== wordLength) {
+    throw new Error(`Words must be ${wordLength} letters`);
   }
   
-  const states: TileState[] = new Array(WORD_LENGTH).fill('absent');
+  const states: TileState[] = new Array(wordLength).fill('absent');
   const answerLetterCounts: Record<string, number> = {};
   
   for (const letter of answerUpper) {
@@ -16,7 +16,7 @@ export function evaluateGuess(guess: string, answer: string): EvaluationResult {
   }
   
   // First pass: mark correct letters (green)
-  for (let i = 0; i < WORD_LENGTH; i++) {
+  for (let i = 0; i < wordLength; i++) {
     if (guessUpper[i] === answerUpper[i]) {
       states[i] = 'correct';
       answerLetterCounts[guessUpper[i]]--;
@@ -24,7 +24,7 @@ export function evaluateGuess(guess: string, answer: string): EvaluationResult {
   }
   
   // Second pass: mark present letters (yellow)
-  for (let i = 0; i < WORD_LENGTH; i++) {
+  for (let i = 0; i < wordLength; i++) {
     if (states[i] !== 'correct') {
       const letter = guessUpper[i];
       if (answerLetterCounts[letter] && answerLetterCounts[letter] > 0) {

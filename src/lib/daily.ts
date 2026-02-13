@@ -1,5 +1,6 @@
 import { getDailyAnswersFromPool } from './answers';
-import { NUM_BOARDS } from '@/types/game';
+import { GameConfig } from '@/types/game';
+import { DEFAULT_GAME_CONFIG } from './gameConfig';
 
 const EPOCH_DATE = new Date('2025-01-01T13:00:00Z');
 
@@ -79,13 +80,13 @@ export function getDailyNumber(): number {
   return Math.max(1, diffDays + 1);
 }
 
-export function getDailyAnswers(dailyNumber: number): string[] {
+export function getDailyAnswers(dailyNumber: number, config: Pick<GameConfig, 'boardCount' | 'wordLength'> = DEFAULT_GAME_CONFIG): string[] {
   const seed = dailyNumber * 12345 + 67890;
-  return getDailyAnswersFromPool(NUM_BOARDS, seed);
+  return getDailyAnswersFromPool(config.boardCount, seed, config.wordLength);
 }
 
-export function getTodaysAnswers(): string[] {
-  return getDailyAnswers(getDailyNumber());
+export function getTodaysAnswers(config: Pick<GameConfig, 'boardCount' | 'wordLength'> = DEFAULT_GAME_CONFIG): string[] {
+  return getDailyAnswers(getDailyNumber(), config);
 }
 
 export function getTimeUntilNextDaily(): { hours: number; minutes: number; seconds: number } {

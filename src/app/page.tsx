@@ -10,7 +10,7 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { loadSettings } from '@/lib/storage';
 
 function GameContent() {
-  const { boards, guesses, gameStatus } = useGameBoards();
+  const { boards, guesses, gameStatus, config } = useGameBoards();
   const { currentGuess } = useGameInput();
   const { error, isLoadingWords } = useGameAux();
   const [glowMode, setGlowMode] = useState(false);
@@ -62,9 +62,9 @@ function GameContent() {
             }`}
           >
             {gameStatus === 'won' ? (
-              <>🎉 Congratulations! You solved all 32 words in {guesses.length} guesses!</>
+              <>Congratulations! You solved all {boards.length} words in {guesses.length} guesses.</>
             ) : (
-              <>Game Over - You solved {boards.filter((b) => b.solved).length}/32 words</>
+              <>Game Over - You solved {boards.filter((b) => b.solved).length}/{boards.length} words</>
             )}
           </motion.div>
         )}
@@ -79,7 +79,7 @@ function GameContent() {
           {gameStatus === 'playing' && (
             <div className="flex justify-center my-2 xs:my-3 sm:my-5">
               <div className="flex gap-1 xs:gap-1.5 sm:gap-2 p-1.5 xs:p-2 sm:p-3 rounded-xl bg-bg-tertiary/60 backdrop-blur-sm border border-white/5">
-                {Array.from({ length: 6 }).map((_, i) => (
+                {Array.from({ length: config.wordLength }).map((_, i) => (
                   <div
                     key={i}
                     className={`w-8 h-10 xs:w-9 xs:h-11 sm:w-12 sm:h-14 rounded-lg font-bold text-xl xs:text-2xl sm:text-3xl flex items-center justify-center uppercase transition-all duration-150 border-2 ${

@@ -4,7 +4,7 @@ import { memo, useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Tile, TileWithPop } from './Tile';
 import { useGameActions, useGameBoards, useGameInput } from '@/context/GameContext';
-import { TileState, WORD_LENGTH } from '@/types/game';
+import { TileState } from '@/types/game';
 
 interface WordGridProps {
   boardIndex: number;
@@ -27,10 +27,11 @@ export const WordGrid = memo(function WordGrid({
   glowMode = false,
   tileSize = 'normal',
 }: WordGridProps) {
-  const { boards, guesses, gameStatus } = useGameBoards();
+  const { boards, guesses, gameStatus, config } = useGameBoards();
   const { currentGuess } = useGameInput();
   const { getEvaluationForBoard } = useGameActions();
   const board = boards[boardIndex];
+  const wordLength = config.wordLength;
 
   const relevantGuesses = board.solved && board.solvedAtGuess !== null
     ? guesses.slice(0, board.solvedAtGuess + 1)
@@ -72,7 +73,7 @@ export const WordGrid = memo(function WordGrid({
 
       {showCurrentGuess && !board.solved && gameStatus === 'playing' && (
         <div className={`flex ${mini ? 'gap-px' : 'gap-0.5'}`}>
-          {Array.from({ length: WORD_LENGTH }).map((_, idx) => (
+          {Array.from({ length: wordLength }).map((_, idx) => (
             <TileWithPop
               key={idx}
               letter={currentGuess[idx] || ''}
@@ -86,7 +87,7 @@ export const WordGrid = memo(function WordGrid({
 
       {mini && !board.solved && gameStatus === 'playing' && (
         <div className="flex gap-px">
-          {Array.from({ length: WORD_LENGTH }).map((_, idx) => (
+          {Array.from({ length: wordLength }).map((_, idx) => (
             <Tile key={idx} letter="" state="empty" size="mini" animate={false} />
           ))}
         </div>
@@ -102,9 +103,10 @@ export const MiniWordGrid = memo(function MiniWordGrid({
   boardIndex: number;
   onClick: () => void;
 }) {
-  const { boards, guesses, gameStatus } = useGameBoards();
+  const { boards, guesses, gameStatus, config } = useGameBoards();
   const { getEvaluationForBoard } = useGameActions();
   const board = boards[boardIndex];
+  const wordLength = config.wordLength;
 
   const relevantGuesses = board.solved && board.solvedAtGuess !== null
     ? guesses.slice(0, board.solvedAtGuess + 1)
@@ -125,7 +127,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
     if (!el) return;
 
     const computeLayout = (width: number, height: number) => {
-      const cols = WORD_LENGTH;
+      const cols = wordLength;
       const isSmallViewport =
         typeof window !== 'undefined' &&
         typeof window.matchMedia === 'function' &&
@@ -189,7 +191,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
 
     ro.observe(el);
     return () => ro.disconnect();
-  }, [relevantGuesses.length]);
+  }, [relevantGuesses.length, wordLength]);
 
   const displayGuesses = relevantGuesses.slice(-miniLayout.rowsToShow);
 
@@ -203,11 +205,11 @@ export const MiniWordGrid = memo(function MiniWordGrid({
     if (relevantGuesses.length === 0) return null;
 
     const rank: Record<TileState, number> = { empty: 0, absent: 1, present: 2, correct: 3, tbd: 0 };
-    const best: TileState[] = new Array(WORD_LENGTH).fill('empty');
+    const best: TileState[] = new Array(wordLength).fill('empty');
 
     for (let i = 0; i < relevantGuesses.length; i++) {
       const states = getEvaluationForBoard(boardIndex, i);
-      for (let j = 0; j < WORD_LENGTH; j++) {
+      for (let j = 0; j < wordLength; j++) {
         if (rank[states[j]] > rank[best[j]]) best[j] = states[j];
       }
     }
@@ -296,11 +298,11 @@ export const MiniWordGrid = memo(function MiniWordGrid({
               key={`empty-${rowIdx}`}
               className="grid w-full justify-center"
               style={{
-                gridTemplateColumns: `repeat(${WORD_LENGTH}, ${miniLayout.tilePx}px)`,
+                gridTemplateColumns: `repeat(${wordLength}, ${miniLayout.tilePx}px)`,
                 columnGap: `${miniLayout.gapX}px`,
               }}
             >
-              {Array.from({ length: WORD_LENGTH }).map((_, colIdx) => (
+              {Array.from({ length: wordLength }).map((_, colIdx) => (
                 <div
                   key={colIdx}
                   className="bg-tile-empty"
@@ -322,7 +324,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
               key={guessIdx}
               className="grid w-full justify-center"
               style={{
-                gridTemplateColumns: `repeat(${WORD_LENGTH}, ${miniLayout.tilePx}px)`,
+                gridTemplateColumns: `repeat(${wordLength}, ${miniLayout.tilePx}px)`,
                 columnGap: `${miniLayout.gapX}px`,
               }}
             >

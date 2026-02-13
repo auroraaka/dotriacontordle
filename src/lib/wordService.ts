@@ -1,70 +1,57 @@
-import wordsData from './words.json';
-
-const WORD_LENGTH = 6;
-
-const FALLBACK_ANSWERS: string[] = [
-  'ABROAD', 'ACTION', 'ANIMAL', 'ANSWER', 'BEAUTY', 'BEFORE', 'BETTER', 'BORDER',
-  'BOTTLE', 'BRANCH', 'BREATH', 'BRIDGE', 'BRIGHT', 'BROKEN', 'BUDGET', 'BUTTON',
-  'CAMERA', 'CANCEL', 'CARBON', 'CAREER', 'CASTLE', 'CAUGHT', 'CENTER', 'CHANCE',
-  'CHANGE', 'CHARGE', 'CHEESE', 'CHOICE', 'CHURCH', 'CIRCLE', 'CLIENT', 'CLOSED',
-  'COFFEE', 'COLUMN', 'COMING', 'COMMON', 'CORNER', 'COTTON', 'COUPLE', 'COURSE',
-  'CREATE', 'CREDIT', 'CRISIS', 'CUSTOM', 'DAMAGE', 'DANGER', 'DECADE', 'DECIDE',
-  'DEFINE', 'DEGREE', 'DELETE', 'DEMAND', 'DESIGN', 'DETAIL', 'DEVICE', 'DIFFER',
-  'DINNER', 'DIRECT', 'DOCTOR', 'DOMAIN', 'DOUBLE', 'DRAGON', 'DRIVEN', 'DURING',
-];
-
-const FALLBACK_VALID_WORDS = new Set([
-  ...FALLBACK_ANSWERS,
-  'ABSORB', 'ACCEPT', 'ACCESS', 'ACCORD', 'ACCUSE', 'ACROSS', 'ACTIVE', 'ACTUAL',
-  'ADVICE', 'ADVISE', 'AFFAIR', 'AFFECT', 'AFFORD', 'AFRAID', 'AGENCY', 'AGENDA',
-  'ALMOST', 'ALUMNI', 'ALWAYS', 'AMOUNT', 'ANNUAL', 'ANYONE', 'ANYWAY', 'APPEAL',
-  'APPEAR', 'AROUND', 'ARRIVE', 'ARTIST', 'ASKING', 'ASPECT', 'ASSESS', 'ASSIST',
-  'ASSUME', 'ATTACK', 'ATTEND', 'AUTHOR', 'AVENUE', 'BACKUP', 'BANANA', 'BARELY',
-  'BATTLE', 'BECAME', 'BECOME', 'BEHALF', 'BEHAVE', 'BEHIND', 'BELIEF', 'BELONG',
-  'BESIDE', 'BEYOND', 'BISHOP', 'BITTER', 'BOUNCE', 'BORROW', 'BOTTOM', 'BOUGHT',
-]);
+import { DEFAULT_WORD_LENGTH } from '@/types/game';
+import { hasDictionaryForLength, loadDictionary } from './dictionaries';
 
 class WordService {
-  private validWordsSet: Set<string> = new Set();
-  private answerPool: string[] = [];
-  private isInitialized = false;
-  private initPromise: Promise<void> | null = null;
+  private validWordsByLength = new Map<number, Set<string>>();
+  private answerPoolByLength = new Map<number, string[]>();
 
-  async initialize(): Promise<void> {
-    if (this.initPromise) return this.initPromise;
-    this.initPromise = this._doInitialize();
-    return this.initPromise;
+  private normalizeLength(wordLength: number): number {
+    return Math.max(1, Math.round(wordLength));
   }
 
-  private async _doInitialize(): Promise<void> {
-    if (this.isInitialized) return;
+  private ensureLoaded(wordLength: number): void {
+    const normalizedLength = this.normalizeLength(wordLength);
+    if (this.validWordsByLength.has(normalizedLength) && this.answerPoolByLength.has(normalizedLength)) return;
 
-    const localWords = (wordsData as string[]).map((w) => w.toUpperCase());
-    this.validWordsSet = new Set(localWords);
-    this.answerPool = [...localWords];
+    if (!hasDictionaryForLength(normalizedLength)) {
+      this.validWordsByLength.set(normalizedLength, new Set());
+      this.answerPoolByLength.set(normalizedLength, []);
+      return;
+    }
 
-    for (const w of FALLBACK_VALID_WORDS) this.validWordsSet.add(w);
-    this.isInitialized = true;
+    const dictionary = loadDictionary(normalizedLength);
+    const validWords = dictionary.validWords
+      .map((w) => w.toUpperCase())
+      .filter((w) => w.length === normalizedLength);
+    const answerWords = dictionary.answerWords
+      .map((w) => w.toUpperCase())
+      .filter((w) => w.length === normalizedLength);
+
+    this.validWordsByLength.set(normalizedLength, new Set(validWords));
+    this.answerPoolByLength.set(normalizedLength, Array.from(new Set(answerWords)));
   }
 
-  async isValidWord(word: string): Promise<boolean> {
-    if (word.length !== WORD_LENGTH) return false;
+  async initialize(wordLength = DEFAULT_WORD_LENGTH): Promise<void> {
+    this.ensureLoaded(wordLength);
+  }
+
+  async isValidWord(word: string, wordLength: number): Promise<boolean> {
+    if (word.length !== wordLength) return false;
     if (!/^[A-Za-z]+$/.test(word)) return false;
 
-    const upperWord = word.toUpperCase();
+    this.ensureLoaded(wordLength);
 
-    if (this.validWordsSet.has(upperWord)) return true;
-    if (FALLBACK_VALID_WORDS.has(upperWord)) {
-      this.validWordsSet.add(upperWord);
-      return true;
-    }
-    return false;
+    const upperWord = word.toUpperCase();
+    const validWords = this.validWordsByLength.get(this.normalizeLength(wordLength));
+    if (!validWords) return false;
+    return validWords.has(upperWord);
   }
 
-  getRandomAnswers(count: number): string[] {
-    const pool = this.isInitialized && this.answerPool.length > 0
-      ? this.answerPool
-      : FALLBACK_ANSWERS;
+  getRandomAnswers(count: number, wordLength: number): string[] {
+    const normalizedCount = Math.max(0, Math.round(count));
+    this.ensureLoaded(wordLength);
+    const pool = this.answerPoolByLength.get(wordLength) ?? [];
+    if (pool.length === 0) return [];
 
     const shuffled = [...pool];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -72,12 +59,13 @@ class WordService {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    return shuffled.slice(0, count);
+    return shuffled.slice(0, normalizedCount);
   }
+
 }
 
 export const wordService = new WordService();
 
-export const isValidWord = (word: string) => wordService.isValidWord(word);
-export const getRandomAnswers = (count: number) => wordService.getRandomAnswers(count);
-export const initializeWordService = () => wordService.initialize();
+export const isValidWord = (word: string, wordLength = DEFAULT_WORD_LENGTH) => wordService.isValidWord(word, wordLength);
+export const getRandomAnswers = (count: number, wordLength = DEFAULT_WORD_LENGTH) => wordService.getRandomAnswers(count, wordLength);
+export const initializeWordService = (wordLength = DEFAULT_WORD_LENGTH) => wordService.initialize(wordLength);

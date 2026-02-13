@@ -2,14 +2,14 @@
 
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Keyboard } from 'lucide-react';
+import { useGameBoards } from '@/context/GameContext';
 
 interface ShortcutsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const SHORTCUTS = [
-  { keyLabel: '1-32', description: 'Jump to a board number' },
+const BASE_SHORTCUTS = [
   { keyLabel: 'A-Z', description: 'Type letters' },
   { keyLabel: 'Enter', description: 'Submit guess' },
   { keyLabel: 'Backspace', description: 'Delete letter' },
@@ -19,6 +19,12 @@ const SHORTCUTS = [
 ];
 
 export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
+  const { boards } = useGameBoards();
+  const shortcuts = [
+    { keyLabel: `1-${boards.length}`, description: 'Jump to a board number' },
+    ...BASE_SHORTCUTS,
+  ];
+
   if (!isOpen) return null;
 
   return (
@@ -50,7 +56,7 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
           </div>
 
           <div className="space-y-2">
-            {SHORTCUTS.map((shortcut) => (
+            {shortcuts.map((shortcut) => (
               <div
                 key={shortcut.keyLabel}
                 className="flex items-center justify-between gap-4 rounded-md bg-bg-tertiary/60 border border-white/10 px-3 py-2"

@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://dotriacontordle.com"),
   title: "Dotriacontordle",
   description:
-    "The ultimate word puzzle challenge! Guess 32 six-letter words in 37 tries. A Wordle variant for true puzzle enthusiasts.",
-  keywords: ["wordle", "word game", "puzzle", "dotriacontordle", "32 words", "word puzzle"],
+    "A synchronized multi-board lexicon challenge where each guess echoes across the entire grid.",
+  keywords: ["word game", "puzzle", "dotriacontordle", "multi-board", "daily puzzle", "word strategy"],
   authors: [{ name: "Dotriacontordle" }],
   applicationName: "Dotriacontordle",
   appleWebApp: {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Dotriacontordle",
     siteName: "Dotriacontordle",
-    description: "The ultimate word puzzle challenge! Guess 32 six-letter words in 37 tries.",
+    description: "A synchronized multi-board lexicon challenge where each guess echoes across the entire grid.",
     type: "website",
     url: "https://dotriacontordle.com",
     images: ["/logo.svg"],
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Dotriacontordle",
-    description: "The ultimate word puzzle challenge! Guess 32 six-letter words in 37 tries.",
+    description: "A synchronized multi-board lexicon challenge where each guess echoes across the entire grid.",
   },
 };
 

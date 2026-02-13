@@ -319,22 +319,29 @@ function getBoardSignal(board: BoardState, guesses: string[]): { correct: number
 }
 
 async function shareResults(
-  state: { boards: { solved: boolean }[]; guesses: string[]; dailyNumber: number; gameStatus: string }
+  state: {
+    boards: { solved: boolean }[];
+    guesses: string[];
+    dailyNumber: number;
+    gameStatus: string;
+    config: { maxGuesses: number };
+  }
 ): Promise<{ kind: 'success' | 'error'; message: string } | null> {
   const solved = state.boards.filter((b) => b.solved).length;
   const guessCount = state.guesses.length;
   const won = state.gameStatus === 'won';
+  const boardCount = state.boards.length;
+  const rowWidth = Math.max(1, Math.min(boardCount, Math.ceil(Math.sqrt(boardCount * 2))));
 
   const emojiGrid = state.boards.map((b) => (b.solved ? '🟩' : '🟥')).join('');
-  const formattedGrid = [
-    emojiGrid.slice(0, 8),
-    emojiGrid.slice(8, 16),
-    emojiGrid.slice(16, 24),
-    emojiGrid.slice(24, 32),
-  ].join('\n');
+  const rows: string[] = [];
+  for (let i = 0; i < emojiGrid.length; i += rowWidth) {
+    rows.push(emojiGrid.slice(i, i + rowWidth));
+  }
+  const formattedGrid = rows.join('\n');
 
   const text = `Dotriacontordle #${state.dailyNumber}
-${won ? `${solved}/32 in ${guessCount}/37` : `${solved}/32 ❌`}
+${won ? `${solved}/${boardCount} in ${guessCount}/${state.config.maxGuesses}` : `${solved}/${boardCount} ❌`}
 
 ${formattedGrid}
 

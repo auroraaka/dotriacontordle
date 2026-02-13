@@ -1,8 +1,6 @@
 export { getRandomAnswers, initializeWordService } from './wordService';
 
-import wordsData from './words.json';
-
-export const WORD_POOL: string[] = wordsData;
+import { loadDictionary } from './dictionaries';
 
 function seededRandom(seed: number): () => number {
   return function () {
@@ -13,8 +11,9 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-export function getDailyAnswersFromPool(count: number, seed: number): string[] {
-  const shuffled = [...WORD_POOL];
+export function getDailyAnswersFromPool(count: number, seed: number, wordLength = 6): string[] {
+  const { answerWords } = loadDictionary(wordLength);
+  const shuffled = [...answerWords];
   const random = seededRandom(seed);
 
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -24,3 +23,5 @@ export function getDailyAnswersFromPool(count: number, seed: number): string[] {
 
   return shuffled.slice(0, count);
 }
+
+export const WORD_POOL: string[] = loadDictionary(6).answerWords;

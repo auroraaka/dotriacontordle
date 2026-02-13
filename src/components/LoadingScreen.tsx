@@ -15,7 +15,7 @@ export function LoadingScreen() {
           <span className="text-gradient">Dotriacontordle</span>
         </h1>
         <p className="text-text-secondary text-center mt-2 text-sm">
-          32 Wordles at once
+          One guess. Every board.
         </p>
       </motion.div>
 
@@ -58,7 +58,7 @@ export function LoadingScreen() {
           Fetching words from dictionary...
         </p>
         <p className="text-text-secondary/60 text-xs mt-2">
-          Building your word pool for today
+          Calibrating your puzzle matrix
         </p>
       </motion.div>
 

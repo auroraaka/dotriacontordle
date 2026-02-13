@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
+import { useGameBoards } from '@/context/GameContext';
 
 interface HowToPlayModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface HowToPlayModalProps {
 }
 
 export function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps) {
+  const { config } = useGameBoards();
   if (!isOpen) return null;
 
   return (
@@ -36,13 +38,13 @@ export function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps) {
 
           <div className="space-y-4 text-text-secondary">
             <p className="text-lg text-text-primary font-medium">
-              Guess all 32 six-letter words in 37 tries!
+              Solve the full matrix: {config.boardCount} synchronized {config.wordLength}-letter targets in {config.maxGuesses} tries.
             </p>
 
             <ul className="space-y-2 list-disc list-inside">
-              <li>Each guess applies to all 32 word puzzles simultaneously</li>
-              <li>The color of the tiles will change to show how close your guess was</li>
-              <li>Click on any mini-grid to see it in detail</li>
+              <li>Each guess is broadcast to every board at once</li>
+              <li>Tile colors reveal precision: exact, displaced, or absent letters</li>
+              <li>Open any mini-grid for a focused board-level analysis</li>
             </ul>
 
             <div className="border-t border-white/10 pt-4 mt-4">
@@ -95,10 +97,10 @@ export function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps) {
               <h3 className="font-bold text-text-primary mb-2">Game Modes</h3>
               <ul className="space-y-2 list-disc list-inside text-sm">
                 <li>
-                  <span className="text-accent font-medium">Daily:</span> Everyone plays the same puzzle. Come back tomorrow for a new one!
+                  <span className="text-accent font-medium">Daily:</span> A shared daily seed for your selected profile. Return next cycle for a new matrix.
                 </li>
                 <li>
-                  <span className="text-accent font-medium">Free Play:</span> Practice with random puzzles any time.
+                  <span className="text-accent font-medium">Free Play:</span> On-demand procedural runs for practice, speed, and experimentation.
                 </li>
               </ul>
             </div>

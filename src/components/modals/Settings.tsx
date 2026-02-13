@@ -4,9 +4,17 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { loadSettings, saveSettings } from '@/lib/storage';
-import { GameSettings } from '@/types/game';
+import {
+  GameSettings,
+  MAX_BOARD_COUNT,
+  MAX_WORD_LENGTH,
+  MIN_BOARD_COUNT,
+  MIN_GUESS_COUNT,
+  MIN_WORD_LENGTH,
+} from '@/types/game';
 import { useGameActions, useGameBoards } from '@/context/GameContext';
 import { getDailyNumber } from '@/lib/daily';
+import { getDefaultMaxGuesses, normalizeGameConfig } from '@/lib/gameConfig';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -14,12 +22,17 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const { gameMode, dailyNumber } = useGameBoards();
+  const { gameMode, dailyNumber, config } = useGameBoards();
   const { newGame, switchMode } = useGameActions();
   const [settings, setSettings] = useState<GameSettings>(() => loadSettings());
   const currentDailyNumber = getDailyNumber();
   const maxArchiveDay = Math.max(1, currentDailyNumber - 1);
   const [archiveDaily, setArchiveDaily] = useState(maxArchiveDay);
+  const preferredConfig = normalizeGameConfig({
+    wordLength: settings.preferredWordLength,
+    boardCount: settings.preferredBoardCount,
+    maxGuesses: settings.preferredMaxGuesses,
+  });
 
   const clampArchiveDaily = (value: number) => Math.max(1, Math.min(maxArchiveDay, value));
 
@@ -27,6 +40,25 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     saveSettings(newSettings);
+  };
+
+  const updatePreferredConfig = (
+    updates: Partial<Pick<GameSettings, 'preferredWordLength' | 'preferredBoardCount' | 'preferredMaxGuesses'>>
+  ) => {
+    const merged = { ...settings, ...updates };
+    const normalized = normalizeGameConfig({
+      wordLength: merged.preferredWordLength,
+      boardCount: merged.preferredBoardCount,
+      maxGuesses: merged.preferredMaxGuesses,
+    });
+    const next: GameSettings = {
+      ...merged,
+      preferredWordLength: normalized.wordLength,
+      preferredBoardCount: normalized.boardCount,
+      preferredMaxGuesses: normalized.maxGuesses,
+    };
+    setSettings(next);
+    saveSettings(next);
   };
 
   if (!isOpen) return null;
@@ -63,11 +95,58 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             />
           </div>
 
+          <div className="border-t border-white/10 mt-6 pt-6">
+            <h3 className="font-bold mb-1">Game Profile</h3>
+            <p className="text-sm text-text-secondary mb-3">
+              Configure letters (n), boards (m), and guess limit.
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <LabeledNumberInput
+                id="word-length"
+                label="Letters"
+                min={MIN_WORD_LENGTH}
+                max={MAX_WORD_LENGTH}
+                value={settings.preferredWordLength}
+                onChange={(value) => updatePreferredConfig({ preferredWordLength: value })}
+              />
+              <LabeledNumberInput
+                id="board-count"
+                label="Boards"
+                min={MIN_BOARD_COUNT}
+                max={MAX_BOARD_COUNT}
+                value={settings.preferredBoardCount}
+                onChange={(value) => updatePreferredConfig({ preferredBoardCount: value })}
+              />
+              <LabeledNumberInput
+                id="max-guesses"
+                label="Guesses"
+                min={MIN_GUESS_COUNT}
+                max={999}
+                value={settings.preferredMaxGuesses}
+                onChange={(value) => updatePreferredConfig({ preferredMaxGuesses: value })}
+              />
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-2 text-xs text-text-secondary">
+              <span>Current preset: {preferredConfig.wordLength}L • {preferredConfig.boardCount}B • {preferredConfig.maxGuesses}G</span>
+              <button
+                onClick={() => updatePreferredConfig({
+                  preferredMaxGuesses: getDefaultMaxGuesses(preferredConfig.wordLength, preferredConfig.boardCount),
+                })}
+                className="btn-accent px-2 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
+              >
+                Use Recommended
+              </button>
+            </div>
+          </div>
+
           <div className="border-t border-white/10 mt-6 pt-6 space-y-3">
             <button
               onClick={() => {
-                if (gameMode === 'daily' && dailyNumber === currentDailyNumber) newGame('daily');
-                else switchMode('daily');
+                if (gameMode === 'daily' && dailyNumber === currentDailyNumber) {
+                  newGame('daily', undefined, preferredConfig);
+                } else {
+                  switchMode('daily', undefined, preferredConfig);
+                }
                 onClose();
               }}
               className="w-full py-3 bg-accent hover:bg-accent/80 rounded-md font-bold transition-colors cursor-pointer"
@@ -76,8 +155,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </button>
             <button
               onClick={() => {
-                if (gameMode === 'free') newGame('free');
-                else switchMode('free');
+                if (gameMode === 'free') newGame('free', undefined, preferredConfig);
+                else switchMode('free', undefined, preferredConfig);
                 onClose();
               }}
               className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-md font-bold transition-colors cursor-pointer"
@@ -114,8 +193,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <button
                 onClick={() => {
                   const selectedDay = clampArchiveDaily(archiveDaily);
-                  if (gameMode === 'daily' && dailyNumber === selectedDay) newGame('daily', selectedDay);
-                  else switchMode('daily', selectedDay);
+                  if (gameMode === 'daily' && dailyNumber === selectedDay) newGame('daily', selectedDay, preferredConfig);
+                  else switchMode('daily', selectedDay, preferredConfig);
                   onClose();
                 }}
                 className="px-3 py-2 rounded-md bg-white/10 hover:bg-white/20 text-sm font-semibold transition-colors whitespace-nowrap"
@@ -129,12 +208,49 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </div>
 
           <div className="border-t border-white/10 mt-6 pt-4 text-center text-xs text-text-secondary">
-            <p>Dotriacontordle - 32 Words, 6 Letters, 37 Guesses</p>
-            <p className="mt-1">A Wordle variant for true puzzle enthusiasts.</p>
+            <p>Active Game: {config.boardCount} Words, {config.wordLength} Letters, {config.maxGuesses} Guesses</p>
+            <p className="mt-1">A synchronized lexicon gauntlet built for deliberate solvers.</p>
           </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
+  );
+}
+
+function LabeledNumberInput({
+  id,
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <label htmlFor={id} className="text-xs text-text-secondary">
+        {label}
+      </label>
+      <input
+        id={id}
+        type="number"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => {
+          const next = parseInt(e.target.value, 10);
+          if (Number.isNaN(next)) return;
+          onChange(next);
+        }}
+        className="w-full bg-bg-tertiary border border-white/15 rounded-md px-2 py-2 text-sm outline-none focus:border-accent"
+      />
+    </div>
   );
 }
 
