@@ -46,7 +46,7 @@ describe('wordService', () => {
 
     it('returns valid 6-letter words', () => {
       const answers = getRandomAnswers(32);
-      answers.forEach(answer => {
+      answers.forEach((answer) => {
         expect(answer).toMatch(/^[A-Z]{6}$/);
       });
     });
@@ -66,4 +66,3 @@ describe('wordService', () => {
     });
   });
 });
-

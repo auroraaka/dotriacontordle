@@ -1,10 +1,10 @@
 # Dotriacontordle
 
-A 32 puzzle, six-letter, word puzzle game.
+A synchronized multi-board lexicon challenge where each guess propagates across the full grid.
 
 ## Features
 
-- **32 Word Puzzles** - Solve all 32 words simultaneously
+- **Configurable Game Size** - Choose 4-10 letters, 1-128 boards, and custom guess limits
 - **Daily Puzzles** - Get a new puzzle every day
 - **Free Play Mode** - Practice without limits
 - **Smart Status Indicators** - Track progress at a glance

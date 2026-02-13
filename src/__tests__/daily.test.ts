@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getDailyNumber, getDailyAnswers, getTimeUntilNextDaily }from '@/lib/daily';
+import { getDailyNumber, getDailyAnswers, getTimeUntilNextDaily } from '@/lib/daily';
 
 describe('getDailyNumber', () => {
   beforeEach(() => {
@@ -61,7 +61,7 @@ describe('getDailyAnswers', () => {
 
   it('returns all uppercase 6-letter words', () => {
     const answers = getDailyAnswers(1);
-    answers.forEach(answer => {
+    answers.forEach((answer) => {
       expect(answer).toMatch(/^[A-Z]{6}$/);
     });
   });
@@ -118,4 +118,3 @@ describe('getTimeUntilNextDaily', () => {
     expect(time.seconds).toBe(30);
   });
 });
-

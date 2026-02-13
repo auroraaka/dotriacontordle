@@ -1,5 +1,12 @@
 export type TileState = 'empty' | 'tbd' | 'correct' | 'present' | 'absent';
 
+export interface GameConfig {
+  wordLength: number;
+  boardCount: number;
+  maxGuesses: number;
+  profileId: string;
+}
+
 export interface BoardState {
   answer: string;
   solved: boolean;
@@ -7,6 +14,7 @@ export interface BoardState {
 }
 
 export interface GameState {
+  config: GameConfig;
   boards: BoardState[];
   guesses: string[];
   currentGuess: string;
@@ -37,6 +45,9 @@ export interface GameStats {
 export interface GameSettings {
   glowMode: boolean;
   feedbackEnabled: boolean;
+  preferredWordLength: number;
+  preferredBoardCount: number;
+  preferredMaxGuesses: number;
 }
 
 export interface EvaluationResult {
@@ -44,11 +55,17 @@ export interface EvaluationResult {
   isCorrect: boolean;
 }
 
-export const WORD_LENGTH = 6;
-export const NUM_BOARDS = 32;
-export const MAX_GUESSES = 37;
-export const BOARD_COLS = 8;
-export const BOARD_ROWS = 4;
+export const DEFAULT_WORD_LENGTH = 6;
+export const DEFAULT_BOARD_COUNT = 32;
+export const DEFAULT_MAX_GUESSES = 37;
+export const WORD_LENGTH = DEFAULT_WORD_LENGTH;
+export const NUM_BOARDS = DEFAULT_BOARD_COUNT;
+export const MAX_GUESSES = DEFAULT_MAX_GUESSES;
+export const MIN_WORD_LENGTH = 4;
+export const MAX_WORD_LENGTH = 10;
+export const MIN_BOARD_COUNT = 1;
+export const MAX_BOARD_COUNT = 128;
+export const MIN_GUESS_COUNT = 1;
 
 export const KEYBOARD_ROWS = [
   ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],

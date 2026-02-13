@@ -7,7 +7,7 @@ describe('WORD_POOL', () => {
   });
 
   it('contains only 6-letter uppercase words', () => {
-    WORD_POOL.forEach(word => {
+    WORD_POOL.forEach((word) => {
       expect(word).toMatch(/^[A-Z]{6}$/);
     });
   });
@@ -38,7 +38,7 @@ describe('getDailyAnswersFromPool', () => {
 
   it('returns words from the answer pool', () => {
     const answers = getDailyAnswersFromPool(32, 54321);
-    answers.forEach(answer => {
+    answers.forEach((answer) => {
       expect(WORD_POOL).toContain(answer);
     });
   });
@@ -49,4 +49,3 @@ describe('getDailyAnswersFromPool', () => {
     expect(uniqueAnswers.size).toBe(32);
   });
 });
-

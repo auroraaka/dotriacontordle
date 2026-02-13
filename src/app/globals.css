@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --bg-primary: #0a0a0f;
@@ -117,7 +117,7 @@ body {
 }
 
 .bg-grid-pattern {
-  background-image: 
+  background-image:
     linear-gradient(to right, var(--tile-border) 1px, transparent 1px),
     linear-gradient(to bottom, var(--tile-border) 1px, transparent 1px);
   background-size: 40px 40px;
@@ -182,7 +182,9 @@ a {
   --tile-active-bg: rgba(255, 0, 255, 0.2);
   --tile-active-color: #ff00ff;
   --tile-active-border: #ff00ff;
-  --tile-active-shadow: 0 0 20px rgba(255, 0, 255, 0.5), 0 0 40px rgba(255, 0, 255, 0.2), inset 0 0 15px rgba(255, 0, 255, 0.1);
+  --tile-active-shadow:
+    0 0 20px rgba(255, 0, 255, 0.5), 0 0 40px rgba(255, 0, 255, 0.2),
+    inset 0 0 15px rgba(255, 0, 255, 0.1);
   --tile-active-text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
 
   --key-enter: #ff00ff;
@@ -192,11 +194,15 @@ a {
 }
 
 .glow-mode .bg-tile-correct {
-  box-shadow: 0 0 15px rgba(0, 255, 136, 0.6), 0 0 30px rgba(0, 255, 136, 0.3);
+  box-shadow:
+    0 0 15px rgba(0, 255, 136, 0.6),
+    0 0 30px rgba(0, 255, 136, 0.3);
 }
 
 .glow-mode .bg-tile-present {
-  box-shadow: 0 0 15px rgba(255, 107, 53, 0.6), 0 0 30px rgba(255, 107, 53, 0.3);
+  box-shadow:
+    0 0 15px rgba(255, 107, 53, 0.6),
+    0 0 30px rgba(255, 107, 53, 0.3);
 }
 
 .glow-mode button {
@@ -216,7 +222,9 @@ a {
 }
 
 .glow-mode .key-enter {
-  box-shadow: 0 0 15px rgba(255, 0, 255, 0.6), 0 0 30px rgba(255, 0, 255, 0.3);
+  box-shadow:
+    0 0 15px rgba(255, 0, 255, 0.6),
+    0 0 30px rgba(255, 0, 255, 0.3);
   text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
 }
 
@@ -229,6 +237,23 @@ a {
 }
 
 .glow-mode .key-backspace {
-  box-shadow: 0 0 15px rgba(255, 51, 102, 0.6), 0 0 30px rgba(255, 51, 102, 0.3);
+  box-shadow:
+    0 0 15px rgba(255, 51, 102, 0.6),
+    0 0 30px rgba(255, 51, 102, 0.3);
   text-shadow: 0 0 10px rgba(255, 51, 102, 0.8);
+}
+
+.btn-accent {
+  background-color: var(--accent);
+  color: #ffffff;
+}
+
+.btn-accent:hover {
+  filter: brightness(1.08);
+}
+
+.glow-mode .btn-accent {
+  box-shadow:
+    0 0 15px rgba(255, 0, 255, 0.55),
+    0 0 30px rgba(255, 0, 255, 0.25);
 }

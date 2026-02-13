@@ -10,6 +10,7 @@ import {
   createInitialBoards,
 } from '@/lib/storage';
 import { GameState, GameStats, GameSettings, MAX_GUESSES } from '@/types/game';
+import { DEFAULT_GAME_CONFIG } from '@/lib/gameConfig';
 
 describe('Game State Storage', () => {
   beforeEach(() => {
@@ -17,6 +18,7 @@ describe('Game State Storage', () => {
   });
 
   const mockGameState: GameState = {
+    config: DEFAULT_GAME_CONFIG,
     boards: [{ answer: 'CASTLE', solved: false, solvedAtGuess: null }],
     guesses: ['DRAGON'],
     currentGuess: 'CAS',
@@ -37,7 +39,7 @@ describe('Game State Storage', () => {
   it('saves and loads daily game state', () => {
     saveGameState(mockGameState, 'daily');
     const loaded = loadGameState('daily', 42);
-    
+
     expect(loaded).not.toBeNull();
     expect(loaded?.guesses).toEqual(['DRAGON']);
     expect(loaded?.currentGuess).toBe('CAS');
@@ -47,7 +49,7 @@ describe('Game State Storage', () => {
   it('saves and loads free game state', () => {
     saveGameState({ ...mockGameState, gameMode: 'free' }, 'free');
     const loaded = loadGameState('free');
-    
+
     expect(loaded).not.toBeNull();
     expect(loaded?.gameMode).toBe('free');
   });
@@ -55,13 +57,23 @@ describe('Game State Storage', () => {
   it('returns null for different daily number', () => {
     saveGameState(mockGameState, 'daily');
     const loaded = loadGameState('daily', 43);
-    
+
     expect(loaded).toBeNull();
   });
 
   it('returns null when no state saved', () => {
     const loaded = loadGameState('daily', 1);
     expect(loaded).toBeNull();
+  });
+
+  it('does not delete v2 daily state key when loading', () => {
+    saveGameState(mockGameState, 'daily');
+    const v2Key = `dotriacontordle_daily_state_v2_${DEFAULT_GAME_CONFIG.profileId}_${mockGameState.dailyNumber}`;
+
+    expect(localStorage.getItem(v2Key)).not.toBeNull();
+    const loaded = loadGameState('daily', mockGameState.dailyNumber, DEFAULT_GAME_CONFIG);
+    expect(loaded).not.toBeNull();
+    expect(localStorage.getItem(v2Key)).not.toBeNull();
   });
 });
 
@@ -72,7 +84,7 @@ describe('Stats Storage', () => {
 
   it('returns default stats when none saved', () => {
     const stats = loadStats();
-    
+
     expect(stats.gamesPlayed).toBe(0);
     expect(stats.gamesWon).toBe(0);
     expect(stats.currentStreak).toBe(0);
@@ -90,10 +102,10 @@ describe('Stats Storage', () => {
       lastPlayedDaily: 42,
       lastCompletedDaily: 42,
     };
-    
+
     saveStats(stats);
     const loaded = loadStats();
-    
+
     expect(loaded.gamesPlayed).toBe(10);
     expect(loaded.gamesWon).toBe(8);
     expect(loaded.currentStreak).toBe(3);
@@ -189,16 +201,28 @@ describe('Settings Storage', () => {
     const settings = loadSettings();
     expect(settings.glowMode).toBe(false);
     expect(settings.feedbackEnabled).toBe(true);
+    expect(settings.preferredWordLength).toBe(DEFAULT_GAME_CONFIG.wordLength);
+    expect(settings.preferredBoardCount).toBe(DEFAULT_GAME_CONFIG.boardCount);
+    expect(settings.preferredMaxGuesses).toBe(DEFAULT_GAME_CONFIG.maxGuesses);
   });
 
   it('saves and loads settings', () => {
-    const settings: GameSettings = { glowMode: true, feedbackEnabled: false };
-    
+    const settings: GameSettings = {
+      glowMode: true,
+      feedbackEnabled: false,
+      preferredWordLength: 5,
+      preferredBoardCount: 16,
+      preferredMaxGuesses: 20,
+    };
+
     saveSettings(settings);
     const loaded = loadSettings();
-    
+
     expect(loaded.glowMode).toBe(true);
     expect(loaded.feedbackEnabled).toBe(false);
+    expect(loaded.preferredWordLength).toBe(5);
+    expect(loaded.preferredBoardCount).toBe(16);
+    expect(loaded.preferredMaxGuesses).toBe(20);
   });
 });
 
@@ -206,7 +230,7 @@ describe('createInitialBoards', () => {
   it('creates board states from answers', () => {
     const answers = ['CASTLE', 'DRAGON', 'BRIDGE'];
     const boards = createInitialBoards(answers);
-    
+
     expect(boards).toHaveLength(3);
     expect(boards[0]).toEqual({ answer: 'CASTLE', solved: false, solvedAtGuess: null });
     expect(boards[1]).toEqual({ answer: 'DRAGON', solved: false, solvedAtGuess: null });

@@ -2,6 +2,7 @@ import { describe, it } from 'vitest';
 import { evaluateGuess, updateKeyboardState } from '@/lib/evaluate';
 import type { TileState, GameState } from '@/types/game';
 import { WORD_LENGTH } from '@/types/game';
+import { DEFAULT_GAME_CONFIG } from '@/lib/gameConfig';
 
 function nowMs() {
   return performance.now();
@@ -9,16 +10,43 @@ function nowMs() {
 
 function msPerOp(label: string, ops: number, durationMs: number) {
   const per = durationMs / ops;
-  // eslint-disable-next-line no-console
   console.log(`${label}: ${durationMs.toFixed(2)}ms total | ${per.toFixed(6)}ms/op | ops=${ops}`);
 }
 
 function makeFakeState(guessCount: number): GameState {
   const answers = [
-    'ACTION', 'ANIMAL', 'ANSWER', 'BEAUTY', 'BEFORE', 'BETTER', 'BORDER', 'BOTTLE',
-    'BRANCH', 'BREATH', 'BRIDGE', 'BRIGHT', 'BROKEN', 'BUDGET', 'BUTTON', 'CAMERA',
-    'CANCEL', 'CARBON', 'CAREER', 'CASTLE', 'CAUGHT', 'CENTER', 'CHANCE', 'CHANGE',
-    'CHARGE', 'CHEESE', 'CHOICE', 'CHURCH', 'CIRCLE', 'CLIENT', 'CLOSED', 'COFFEE',
+    'ACTION',
+    'ANIMAL',
+    'ANSWER',
+    'BEAUTY',
+    'BEFORE',
+    'BETTER',
+    'BORDER',
+    'BOTTLE',
+    'BRANCH',
+    'BREATH',
+    'BRIDGE',
+    'BRIGHT',
+    'BROKEN',
+    'BUDGET',
+    'BUTTON',
+    'CAMERA',
+    'CANCEL',
+    'CARBON',
+    'CAREER',
+    'CASTLE',
+    'CAUGHT',
+    'CENTER',
+    'CHANCE',
+    'CHANGE',
+    'CHARGE',
+    'CHEESE',
+    'CHOICE',
+    'CHURCH',
+    'CIRCLE',
+    'CLIENT',
+    'CLOSED',
+    'COFFEE',
   ];
 
   const guesses = Array.from({ length: guessCount }, (_, i) => {
@@ -27,6 +55,7 @@ function makeFakeState(guessCount: number): GameState {
   });
 
   return {
+    config: DEFAULT_GAME_CONFIG,
     boards: answers.map((answer) => ({ answer, solved: false, solvedAtGuess: null })),
     guesses,
     currentGuess: 'ABCDEF',
@@ -61,10 +90,38 @@ describe('perf smoke (prints timings)', () => {
 
   it('measures "submit-like" evaluation (32 boards per guess)', () => {
     const answers = [
-      'ACTION', 'ANIMAL', 'ANSWER', 'BEAUTY', 'BEFORE', 'BETTER', 'BORDER', 'BOTTLE',
-      'BRANCH', 'BREATH', 'BRIDGE', 'BRIGHT', 'BROKEN', 'BUDGET', 'BUTTON', 'CAMERA',
-      'CANCEL', 'CARBON', 'CAREER', 'CASTLE', 'CAUGHT', 'CENTER', 'CHANCE', 'CHANGE',
-      'CHARGE', 'CHEESE', 'CHOICE', 'CHURCH', 'CIRCLE', 'CLIENT', 'CLOSED', 'COFFEE',
+      'ACTION',
+      'ANIMAL',
+      'ANSWER',
+      'BEAUTY',
+      'BEFORE',
+      'BETTER',
+      'BORDER',
+      'BOTTLE',
+      'BRANCH',
+      'BREATH',
+      'BRIDGE',
+      'BRIGHT',
+      'BROKEN',
+      'BUDGET',
+      'BUTTON',
+      'CAMERA',
+      'CANCEL',
+      'CARBON',
+      'CAREER',
+      'CASTLE',
+      'CAUGHT',
+      'CENTER',
+      'CHANCE',
+      'CHANGE',
+      'CHARGE',
+      'CHEESE',
+      'CHOICE',
+      'CHURCH',
+      'CIRCLE',
+      'CLIENT',
+      'CLOSED',
+      'COFFEE',
     ];
 
     const guess = 'ABROAD';
@@ -108,11 +165,8 @@ describe('perf smoke (prints timings)', () => {
       let out = '';
       for (let i = 0; i < ops; i++) out = JSON.stringify(s);
       const t1 = nowMs();
-      // eslint-disable-next-line no-console
       console.log(`JSON.stringify guesses=${guessCount}: payload=${out.length} chars`);
       msPerOp(`JSON.stringify (guesses=${guessCount})`, ops, t1 - t0);
     }
   });
 });
-
-

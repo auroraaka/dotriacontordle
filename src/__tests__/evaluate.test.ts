@@ -5,7 +5,14 @@ describe('evaluateGuess', () => {
   it('marks all correct when guess matches answer', () => {
     const result = evaluateGuess('CASTLE', 'CASTLE');
     expect(result.isCorrect).toBe(true);
-    expect(result.states).toEqual(['correct', 'correct', 'correct', 'correct', 'correct', 'correct']);
+    expect(result.states).toEqual([
+      'correct',
+      'correct',
+      'correct',
+      'correct',
+      'correct',
+      'correct',
+    ]);
   });
 
   it('marks all absent when no letters match', () => {
@@ -24,7 +31,14 @@ describe('evaluateGuess', () => {
     // S: present (S at pos 2 in CASTLE)
     const result = evaluateGuess('TRACES', 'CASTLE');
     expect(result.isCorrect).toBe(false);
-    expect(result.states).toEqual(['present', 'absent', 'present', 'present', 'present', 'present']);
+    expect(result.states).toEqual([
+      'present',
+      'absent',
+      'present',
+      'present',
+      'present',
+      'present',
+    ]);
   });
 
   it('marks correct over present for same letter', () => {
@@ -67,7 +81,14 @@ describe('evaluateGuess', () => {
   it('is case insensitive', () => {
     const result = evaluateGuess('castle', 'CASTLE');
     expect(result.isCorrect).toBe(true);
-    expect(result.states).toEqual(['correct', 'correct', 'correct', 'correct', 'correct', 'correct']);
+    expect(result.states).toEqual([
+      'correct',
+      'correct',
+      'correct',
+      'correct',
+      'correct',
+      'correct',
+    ]);
   });
 
   it('throws error for wrong word length', () => {
@@ -78,7 +99,14 @@ describe('evaluateGuess', () => {
 
 describe('updateKeyboardState', () => {
   it('adds new letter states', () => {
-    const result = updateKeyboardState({}, 'CASTLE', ['correct', 'present', 'absent', 'correct', 'absent', 'present']);
+    const result = updateKeyboardState({}, 'CASTLE', [
+      'correct',
+      'present',
+      'absent',
+      'correct',
+      'absent',
+      'present',
+    ]);
     expect(result.C).toBe('correct');
     expect(result.A).toBe('present');
     expect(result.S).toBe('absent');
@@ -86,25 +114,53 @@ describe('updateKeyboardState', () => {
 
   it('upgrades absent to present', () => {
     const current = { A: 'absent' as const };
-    const result = updateKeyboardState(current, 'ABCDEF', ['present', 'absent', 'absent', 'absent', 'absent', 'absent']);
+    const result = updateKeyboardState(current, 'ABCDEF', [
+      'present',
+      'absent',
+      'absent',
+      'absent',
+      'absent',
+      'absent',
+    ]);
     expect(result.A).toBe('present');
   });
 
   it('upgrades present to correct', () => {
     const current = { A: 'present' as const };
-    const result = updateKeyboardState(current, 'ABCDEF', ['correct', 'absent', 'absent', 'absent', 'absent', 'absent']);
+    const result = updateKeyboardState(current, 'ABCDEF', [
+      'correct',
+      'absent',
+      'absent',
+      'absent',
+      'absent',
+      'absent',
+    ]);
     expect(result.A).toBe('correct');
   });
 
   it('does not downgrade correct to present', () => {
     const current = { A: 'correct' as const };
-    const result = updateKeyboardState(current, 'ABCDEF', ['present', 'absent', 'absent', 'absent', 'absent', 'absent']);
+    const result = updateKeyboardState(current, 'ABCDEF', [
+      'present',
+      'absent',
+      'absent',
+      'absent',
+      'absent',
+      'absent',
+    ]);
     expect(result.A).toBe('correct');
   });
 
   it('does not downgrade present to absent', () => {
     const current = { A: 'present' as const };
-    const result = updateKeyboardState(current, 'ABCDEF', ['absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
+    const result = updateKeyboardState(current, 'ABCDEF', [
+      'absent',
+      'absent',
+      'absent',
+      'absent',
+      'absent',
+      'absent',
+    ]);
     expect(result.A).toBe('present');
   });
 });
