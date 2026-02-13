@@ -20,10 +20,10 @@ export function GameBoard() {
 
   return (
     <>
-      <div className="w-full h-full max-w-[1600px] mx-auto flex items-center justify-center px-0.5 xs:px-1 sm:px-0">
+      <div className="xs:px-1 mx-auto flex h-full w-full max-w-[1600px] items-center justify-center px-0.5 sm:px-0">
         <div
           key={gameId}
-          className="grid gap-0.5 xs:gap-1 sm:gap-2 md:gap-3 lg:gap-4 w-full h-full max-h-full max-w-full p-2 sm:p-2.5 md:p-3"
+          className="xs:gap-1 grid h-full max-h-full w-full max-w-full gap-0.5 p-2 sm:gap-2 sm:p-2.5 md:gap-3 md:p-3 lg:gap-4"
           style={{
             gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
             gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,

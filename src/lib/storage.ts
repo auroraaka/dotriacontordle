@@ -68,18 +68,21 @@ function inferHydratedState(
 ): GameState {
   const savedAt = (rawState as { savedAt?: number }).savedAt;
   const config = normalizeGameConfig((rawState as GameState).config ?? fallbackConfig);
-  const guesses = Array.isArray((rawState as GameState).guesses) ? (rawState as GameState).guesses : [];
-  const currentGuess = typeof (rawState as GameState).currentGuess === 'string' ? (rawState as GameState).currentGuess : '';
+  const guesses = Array.isArray((rawState as GameState).guesses)
+    ? (rawState as GameState).guesses
+    : [];
+  const currentGuess =
+    typeof (rawState as GameState).currentGuess === 'string'
+      ? (rawState as GameState).currentGuess
+      : '';
   const gameStatus = (rawState as GameState).gameStatus ?? 'playing';
   const hasProgress = guesses.length > 0 || currentGuess.length > 0;
 
   const inferredStart =
-    (rawState as GameState).startedAt ??
-    (hasProgress ? savedAt ?? Date.now() : null);
+    (rawState as GameState).startedAt ?? (hasProgress ? (savedAt ?? Date.now()) : null);
 
   const inferredEnd =
-    (rawState as GameState).endedAt ??
-    (gameStatus !== 'playing' ? savedAt ?? Date.now() : null);
+    (rawState as GameState).endedAt ?? (gameStatus !== 'playing' ? (savedAt ?? Date.now()) : null);
 
   const inferredTimerBaseElapsedMs =
     typeof (rawState as GameState).timerBaseElapsedMs === 'number'
@@ -102,9 +105,10 @@ function inferHydratedState(
         ? Date.now()
         : null;
 
-  const dailyNumber = typeof (rawState as GameState).dailyNumber === 'number'
-    ? (rawState as GameState).dailyNumber
-    : 1;
+  const dailyNumber =
+    typeof (rawState as GameState).dailyNumber === 'number'
+      ? (rawState as GameState).dailyNumber
+      : 1;
 
   const gameId =
     typeof (rawState as GameState).gameId === 'string' && (rawState as GameState).gameId
@@ -117,10 +121,15 @@ function inferHydratedState(
     guesses,
     currentGuess,
     gameStatus: gameStatus === 'won' || gameStatus === 'lost' ? gameStatus : 'playing',
-    keyboardState: typeof (rawState as GameState).keyboardState === 'object' && (rawState as GameState).keyboardState
-      ? (rawState as GameState).keyboardState
-      : {},
-    expandedBoard: typeof (rawState as GameState).expandedBoard === 'number' ? (rawState as GameState).expandedBoard : null,
+    keyboardState:
+      typeof (rawState as GameState).keyboardState === 'object' &&
+      (rawState as GameState).keyboardState
+        ? (rawState as GameState).keyboardState
+        : {},
+    expandedBoard:
+      typeof (rawState as GameState).expandedBoard === 'number'
+        ? (rawState as GameState).expandedBoard
+        : null,
     gameMode: mode,
     dailyNumber,
     startedAt: inferredStart,
@@ -128,7 +137,10 @@ function inferHydratedState(
     timerRunning: inferredTimerRunning,
     timerBaseElapsedMs: inferredTimerBaseElapsedMs,
     timerResumedAt: inferredTimerRunning ? inferredTimerResumedAt : null,
-    timerToggledAt: typeof (rawState as GameState).timerToggledAt === 'number' ? (rawState as GameState).timerToggledAt : null,
+    timerToggledAt:
+      typeof (rawState as GameState).timerToggledAt === 'number'
+        ? (rawState as GameState).timerToggledAt
+        : null,
     gameId,
   };
 }
@@ -137,16 +149,18 @@ export function saveGameState(state: GameState, mode: 'daily' | 'free'): void {
   if (!isStorageAvailable()) return;
 
   const config = normalizeGameConfig(state.config);
-  const key = mode === 'daily'
-    ? getDailyStateKey(state.dailyNumber, config)
-    : getFreeStateKey(config);
+  const key =
+    mode === 'daily' ? getDailyStateKey(state.dailyNumber, config) : getFreeStateKey(config);
   const stateToSave = { ...state, config, savedAt: Date.now() };
 
   try {
     localStorage.setItem(key, JSON.stringify(stateToSave));
     if (isDefaultProfile(config)) {
       if (mode === 'daily') {
-        localStorage.setItem(`${STORAGE_KEYS.DAILY_STATE_LEGACY_PREFIX}_${state.dailyNumber}`, JSON.stringify(stateToSave));
+        localStorage.setItem(
+          `${STORAGE_KEYS.DAILY_STATE_LEGACY_PREFIX}_${state.dailyNumber}`,
+          JSON.stringify(stateToSave)
+        );
       } else {
         localStorage.setItem(STORAGE_KEYS.FREE_STATE_LEGACY, JSON.stringify(stateToSave));
       }
@@ -189,7 +203,9 @@ export function loadGameState(
         saved = keyedState;
         sourceKey = getDailyStateKey(currentDailyNumber, config);
       } else if (isDefaultProfile(config)) {
-        const legacyKeyed = localStorage.getItem(`${STORAGE_KEYS.DAILY_STATE_LEGACY_PREFIX}_${currentDailyNumber}`);
+        const legacyKeyed = localStorage.getItem(
+          `${STORAGE_KEYS.DAILY_STATE_LEGACY_PREFIX}_${currentDailyNumber}`
+        );
         if (legacyKeyed) {
           saved = legacyKeyed;
           sourceKey = `${STORAGE_KEYS.DAILY_STATE_LEGACY_PREFIX}_${currentDailyNumber}`;
@@ -217,7 +233,9 @@ export function loadGameState(
 
     if (!saved || !sourceKey) return null;
 
-    const raw = JSON.parse(saved) as (GameState & { savedAt?: number }) | (Partial<GameState> & { savedAt?: number });
+    const raw = JSON.parse(saved) as
+      | (GameState & { savedAt?: number })
+      | (Partial<GameState> & { savedAt?: number });
     const hydrated = inferHydratedState(mode, raw, config);
 
     if (mode === 'daily' && currentDailyNumber !== undefined) {
@@ -232,15 +250,14 @@ export function loadGameState(
     const isLegacyKey =
       sourceKey === STORAGE_KEYS.DAILY_STATE_LEGACY ||
       sourceKey === STORAGE_KEYS.FREE_STATE_LEGACY ||
-      (
-        sourceKey.startsWith(`${STORAGE_KEYS.DAILY_STATE_LEGACY_PREFIX}_`) &&
-        !sourceKey.startsWith(`${STORAGE_KEYS.DAILY_STATE_PREFIX}_`)
-      );
+      (sourceKey.startsWith(`${STORAGE_KEYS.DAILY_STATE_LEGACY_PREFIX}_`) &&
+        !sourceKey.startsWith(`${STORAGE_KEYS.DAILY_STATE_PREFIX}_`));
 
     if (isLegacyKey) {
-      const migrateTarget = mode === 'daily'
-        ? getDailyStateKey(hydrated.dailyNumber, hydrated.config)
-        : getFreeStateKey(hydrated.config);
+      const migrateTarget =
+        mode === 'daily'
+          ? getDailyStateKey(hydrated.dailyNumber, hydrated.config)
+          : getFreeStateKey(hydrated.config);
       localStorage.setItem(migrateTarget, JSON.stringify({ ...hydrated, savedAt: Date.now() }));
       localStorage.removeItem(sourceKey);
     }
@@ -280,7 +297,8 @@ export function loadStats(configInput?: Partial<GameConfig>): GameStats {
       maxStreak: Number(parsed.maxStreak) || 0,
       guessDistribution: normalizeGuessDistribution(parsed.guessDistribution, config.maxGuesses),
       lastPlayedDaily: typeof parsed.lastPlayedDaily === 'number' ? parsed.lastPlayedDaily : null,
-      lastCompletedDaily: typeof parsed.lastCompletedDaily === 'number' ? parsed.lastCompletedDaily : null,
+      lastCompletedDaily:
+        typeof parsed.lastCompletedDaily === 'number' ? parsed.lastCompletedDaily : null,
     };
 
     if (!keyed && isDefaultProfile(config) && saved) {
@@ -328,12 +346,14 @@ export function updateStatsAfterGame(
   configOrDaily: Partial<GameConfig> | number | null,
   dailyNumberMaybe?: number | null
 ): GameStats {
-  const config = typeof configOrDaily === 'number' || configOrDaily === null
-    ? DEFAULT_GAME_CONFIG
-    : normalizeGameConfig(configOrDaily);
-  const dailyNumber = typeof configOrDaily === 'number' || configOrDaily === null
-    ? configOrDaily
-    : (dailyNumberMaybe ?? null);
+  const config =
+    typeof configOrDaily === 'number' || configOrDaily === null
+      ? DEFAULT_GAME_CONFIG
+      : normalizeGameConfig(configOrDaily);
+  const dailyNumber =
+    typeof configOrDaily === 'number' || configOrDaily === null
+      ? configOrDaily
+      : (dailyNumberMaybe ?? null);
   const stats = loadStats(config);
   if (dailyNumber !== null && stats.lastPlayedDaily === dailyNumber) {
     return stats;
@@ -371,7 +391,10 @@ export function loadSettings(): GameSettings {
     const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (!saved) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(saved) as Record<string, unknown> | null;
-    const merged = { ...DEFAULT_SETTINGS, ...(parsed && typeof parsed === 'object' ? parsed : {}) } as Record<string, unknown>;
+    const merged = {
+      ...DEFAULT_SETTINGS,
+      ...(parsed && typeof parsed === 'object' ? parsed : {}),
+    } as Record<string, unknown>;
     const preferred = normalizeGameConfig({
       wordLength: merged.preferredWordLength as number,
       boardCount: merged.preferredBoardCount as number,
@@ -409,7 +432,9 @@ export function saveSettings(settings: GameSettings): void {
 
   try {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(normalized));
-    window.dispatchEvent(new CustomEvent('dotriacontordle_settings_changed', { detail: normalized }));
+    window.dispatchEvent(
+      new CustomEvent('dotriacontordle_settings_changed', { detail: normalized })
+    );
   } catch (error) {
     console.error('Failed to save settings:', error);
   }

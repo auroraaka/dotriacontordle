@@ -17,12 +17,15 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
   const state = useGameBoards();
   const { stats } = useGameAux();
   const [timeUntilNext, setTimeUntilNext] = useState(formatTimeUntilNextDaily());
-  const [shareToast, setShareToast] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
+  const [shareToast, setShareToast] = useState<{
+    kind: 'success' | 'error';
+    message: string;
+  } | null>(null);
   const shareToastTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const tick = () => setTimeUntilNext(formatTimeUntilNextDaily());
     const raf = window.requestAnimationFrame(tick);
     const interval = window.setInterval(tick, 1000);
@@ -92,9 +95,8 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
 
   if (!isOpen) return null;
 
-  const winPercentage = stats.gamesPlayed > 0
-    ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)
-    : 0;
+  const winPercentage =
+    stats.gamesPlayed > 0 ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100) : 0;
 
   return (
     <>
@@ -104,24 +106,27 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-bg-secondary rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+            className="bg-bg-secondary max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold">Statistics</h2>
-              <button onClick={onClose} className="p-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer">
-                <X className="w-5 h-5" />
+              <button
+                onClick={onClose}
+                className="cursor-pointer rounded-md p-2 transition-colors hover:bg-white/10"
+              >
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="mb-6 grid grid-cols-4 gap-4">
               <StatBox value={stats.gamesPlayed} label="Played" />
               <StatBox value={winPercentage} label="Win %" />
               <StatBox value={stats.currentStreak} label="Current Streak" />
@@ -129,25 +134,25 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
             </div>
 
             <div className="border-t border-white/10 pt-4">
-              <p className="text-sm font-semibold mb-2">Guess Distribution (Wins)</p>
+              <p className="mb-2 text-sm font-semibold">Guess Distribution (Wins)</p>
               {guessDistributionRows.length === 0 ? (
-                <p className="text-sm text-text-secondary">No completed wins yet.</p>
+                <p className="text-text-secondary text-sm">No completed wins yet.</p>
               ) : (
                 <GuessDistribution rows={guessDistributionRows} />
               )}
             </div>
 
             {state.gameMode === 'daily' && (
-              <div className="border-t border-white/10 pt-4 mt-4">
+              <div className="mt-4 border-t border-white/10 pt-4">
                 <div className="text-center">
-                  <p className="text-sm text-text-secondary mb-1">Next Dotriacontordle</p>
-                  <p className="text-2xl font-mono font-bold text-accent">{timeUntilNext}</p>
+                  <p className="text-text-secondary mb-1 text-sm">Next Dotriacontordle</p>
+                  <p className="text-accent font-mono text-2xl font-bold">{timeUntilNext}</p>
                 </div>
               </div>
             )}
 
             {analytics && (
-              <div className="border-t border-white/10 pt-4 mt-4 space-y-2">
+              <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
                 <p className="text-sm font-semibold">Run Analytics</p>
                 <AnalyticsRow
                   label="Biggest Jump"
@@ -161,23 +166,20 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
                   label="Hardest Board"
                   value={`#${analytics.hardestBoard.boardNumber} (${analytics.hardestBoard.detail})`}
                 />
-                <AnalyticsRow
-                  label="Solve Order"
-                  value={formatSolveOrder(analytics.solveOrder)}
-                />
+                <AnalyticsRow label="Solve Order" value={formatSolveOrder(analytics.solveOrder)} />
               </div>
             )}
 
             {state.gameStatus !== 'playing' && (
-              <div className="border-t border-white/10 pt-4 mt-4">
+              <div className="mt-4 border-t border-white/10 pt-4">
                 <button
                   onClick={async () => {
                     const toast = await shareResults(state);
                     if (toast) showShareToast(toast);
                   }}
-                  className="w-full py-3 bg-tile-correct hover:bg-tile-correct/80 rounded-md font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="bg-tile-correct hover:bg-tile-correct/80 flex w-full cursor-pointer items-center justify-center gap-2 rounded-md py-3 font-bold transition-colors"
                 >
-                  <Share2 className="w-5 h-5" />
+                  <Share2 className="h-5 w-5" />
                   Share
                 </button>
               </div>
@@ -193,10 +195,8 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
-            className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-md text-sm font-medium shadow-lg ${
-              shareToast.kind === 'success'
-                ? 'bg-tile-correct text-white'
-                : 'bg-red-500 text-white'
+            className={`fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 rounded-md px-4 py-2 text-sm font-medium shadow-lg ${
+              shareToast.kind === 'success' ? 'bg-tile-correct text-white' : 'bg-red-500 text-white'
             }`}
           >
             {shareToast.message}
@@ -211,7 +211,7 @@ function StatBox({ value, label }: { value: number; label: string }) {
   return (
     <div className="text-center">
       <div className="text-3xl font-bold">{value}</div>
-      <div className="text-xs text-text-secondary">{label}</div>
+      <div className="text-text-secondary text-xs">{label}</div>
     </div>
   );
 }
@@ -229,13 +229,13 @@ function GuessDistribution({ rows }: { rows: { guess: number; count: number }[] 
   const maxCount = Math.max(...rows.map((row) => row.count), 1);
 
   return (
-    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+    <div className="max-h-48 space-y-1.5 overflow-y-auto pr-1">
       {rows.map((row) => (
         <div key={row.guess} className="flex items-center gap-2 text-xs">
-          <span className="w-7 text-right font-mono text-text-secondary">{row.guess}</span>
-          <div className="h-5 flex-1 bg-bg-tertiary rounded-sm overflow-hidden">
+          <span className="text-text-secondary w-7 text-right font-mono">{row.guess}</span>
+          <div className="bg-bg-tertiary h-5 flex-1 overflow-hidden rounded-sm">
             <div
-              className="h-full bg-accent/80"
+              className="bg-accent/80 h-full"
               style={{ width: `${Math.max(8, (row.count / maxCount) * 100)}%` }}
             />
           </div>
@@ -248,12 +248,18 @@ function GuessDistribution({ rows }: { rows: { guess: number; count: number }[] 
 
 function formatSolveOrder(order: number[]): string {
   if (order.length === 0) return 'No solved boards';
-  const preview = order.slice(0, 10).map((boardNumber) => `#${boardNumber}`).join(' -> ');
+  const preview = order
+    .slice(0, 10)
+    .map((boardNumber) => `#${boardNumber}`)
+    .join(' -> ');
   const remaining = order.length - 10;
   return remaining > 0 ? `${preview} ... +${remaining} more` : preview;
 }
 
-function getHardestBoard(boards: BoardState[], guesses: string[]): { boardNumber: number; detail: string } {
+function getHardestBoard(
+  boards: BoardState[],
+  guesses: string[]
+): { boardNumber: number; detail: string } {
   const boardSignals = boards.map((board, boardIndex) => {
     const signal = getBoardSignal(board, guesses);
     return {
@@ -266,7 +272,13 @@ function getHardestBoard(boards: BoardState[], guesses: string[]): { boardNumber
 
   const unsolved = boardSignals
     .filter((entry) => !entry.solved)
-    .sort((a, b) => a.score - b.score || a.correct - b.correct || a.present - b.present || a.boardIndex - b.boardIndex);
+    .sort(
+      (a, b) =>
+        a.score - b.score ||
+        a.correct - b.correct ||
+        a.present - b.present ||
+        a.boardIndex - b.boardIndex
+    );
 
   if (unsolved.length > 0) {
     const hardest = unsolved[0];
@@ -278,7 +290,9 @@ function getHardestBoard(boards: BoardState[], guesses: string[]): { boardNumber
 
   const solved = boardSignals
     .filter((entry) => typeof entry.solvedAtGuess === 'number')
-    .sort((a, b) => (b.solvedAtGuess ?? -1) - (a.solvedAtGuess ?? -1) || a.boardIndex - b.boardIndex);
+    .sort(
+      (a, b) => (b.solvedAtGuess ?? -1) - (a.solvedAtGuess ?? -1) || a.boardIndex - b.boardIndex
+    );
 
   const hardest = solved[0];
   if (!hardest) return { boardNumber: 1, detail: 'No data' };
@@ -289,7 +303,10 @@ function getHardestBoard(boards: BoardState[], guesses: string[]): { boardNumber
   };
 }
 
-function getBoardSignal(board: BoardState, guesses: string[]): { correct: number; present: number; score: number } {
+function getBoardSignal(
+  board: BoardState,
+  guesses: string[]
+): { correct: number; present: number; score: number } {
   const rank: Record<TileState, number> = { empty: 0, absent: 1, present: 2, correct: 3, tbd: 0 };
   const best: TileState[] = new Array(board.answer.length).fill('empty');
   const relevantGuessCount =
@@ -318,15 +335,13 @@ function getBoardSignal(board: BoardState, guesses: string[]): { correct: number
   };
 }
 
-async function shareResults(
-  state: {
-    boards: { solved: boolean }[];
-    guesses: string[];
-    dailyNumber: number;
-    gameStatus: string;
-    config: { maxGuesses: number };
-  }
-): Promise<{ kind: 'success' | 'error'; message: string } | null> {
+async function shareResults(state: {
+  boards: { solved: boolean }[];
+  guesses: string[];
+  dailyNumber: number;
+  gameStatus: string;
+  config: { maxGuesses: number };
+}): Promise<{ kind: 'success' | 'error'; message: string } | null> {
   const solved = state.boards.filter((b) => b.solved).length;
   const guessCount = state.guesses.length;
   const won = state.gameStatus === 'won';

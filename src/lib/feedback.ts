@@ -1,19 +1,14 @@
 import { loadSettings } from '@/lib/storage';
 
-type FeedbackEvent =
-  | 'key'
-  | 'delete'
-  | 'submit'
-  | 'error'
-  | 'solved'
-  | 'win'
-  | 'lose';
+type FeedbackEvent = 'key' | 'delete' | 'submit' | 'error' | 'solved' | 'win' | 'lose';
 
 let audioCtx: AudioContext | null = null;
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
-  const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  const Ctx =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctx) return null;
   if (!audioCtx) audioCtx = new Ctx();
   return audioCtx;
@@ -23,18 +18,20 @@ async function ensureAudioRunning(ctx: AudioContext) {
   if (ctx.state === 'suspended') {
     try {
       await ctx.resume();
-    } catch {
-    }
+    } catch {}
   }
 }
 
-function beep(ctx: AudioContext, opts: { freq: number; durationMs: number; type?: OscillatorType; gain?: number; when?: number }) {
+function beep(
+  ctx: AudioContext,
+  opts: { freq: number; durationMs: number; type?: OscillatorType; gain?: number; when?: number }
+) {
   const osc = ctx.createOscillator();
   const g = ctx.createGain();
 
   const type = opts.type ?? 'sine';
   const gain = opts.gain ?? 0.03;
-  const t0 = (opts.when ?? ctx.currentTime);
+  const t0 = opts.when ?? ctx.currentTime;
   const t1 = t0 + opts.durationMs / 1000;
 
   osc.type = type;
@@ -56,8 +53,7 @@ function vibrate(pattern: number | number[]) {
   if (!('vibrate' in navigator)) return;
   try {
     navigator.vibrate(pattern);
-  } catch {
-  }
+  } catch {}
 }
 
 export async function triggerFeedback(event: FeedbackEvent) {
@@ -116,8 +112,8 @@ export async function triggerFeedback(event: FeedbackEvent) {
       break;
     case 'win':
       beep(ctx, { freq: 523, durationMs: 90, type: 'sine', gain: 0.03, when: now });
-      beep(ctx, { freq: 659, durationMs: 90, type: 'sine', gain: 0.03, when: now + 0.10 });
-      beep(ctx, { freq: 784, durationMs: 120, type: 'sine', gain: 0.03, when: now + 0.20 });
+      beep(ctx, { freq: 659, durationMs: 90, type: 'sine', gain: 0.03, when: now + 0.1 });
+      beep(ctx, { freq: 784, durationMs: 120, type: 'sine', gain: 0.03, when: now + 0.2 });
       break;
     case 'lose':
       beep(ctx, { freq: 380, durationMs: 120, type: 'triangle', gain: 0.03, when: now });
@@ -134,5 +130,3 @@ export async function primeFeedback() {
   if (!ctx) return;
   await ensureAudioRunning(ctx);
 }
-
-

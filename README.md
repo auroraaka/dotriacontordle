@@ -20,18 +20,6 @@ A synchronized multi-board lexicon challenge where each guess propagates across 
 - [Motion](https://motion.dev)
 - [TypeScript](https://www.typescriptlang.org)
 
-## Dictionaries
-
-Per-length dictionaries live in `src/lib/dictionaries` for word lengths `4..10`.
-
-To regenerate dictionaries locally:
-
-```bash
-npm run build:dictionaries
-```
-
-By default the script uses `/usr/share/dict/words` for all supported lengths (`4..10`).
-
 ## License
 
 MIT

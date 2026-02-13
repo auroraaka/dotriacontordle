@@ -39,7 +39,7 @@ describe('Game State Storage', () => {
   it('saves and loads daily game state', () => {
     saveGameState(mockGameState, 'daily');
     const loaded = loadGameState('daily', 42);
-    
+
     expect(loaded).not.toBeNull();
     expect(loaded?.guesses).toEqual(['DRAGON']);
     expect(loaded?.currentGuess).toBe('CAS');
@@ -49,7 +49,7 @@ describe('Game State Storage', () => {
   it('saves and loads free game state', () => {
     saveGameState({ ...mockGameState, gameMode: 'free' }, 'free');
     const loaded = loadGameState('free');
-    
+
     expect(loaded).not.toBeNull();
     expect(loaded?.gameMode).toBe('free');
   });
@@ -57,7 +57,7 @@ describe('Game State Storage', () => {
   it('returns null for different daily number', () => {
     saveGameState(mockGameState, 'daily');
     const loaded = loadGameState('daily', 43);
-    
+
     expect(loaded).toBeNull();
   });
 
@@ -84,7 +84,7 @@ describe('Stats Storage', () => {
 
   it('returns default stats when none saved', () => {
     const stats = loadStats();
-    
+
     expect(stats.gamesPlayed).toBe(0);
     expect(stats.gamesWon).toBe(0);
     expect(stats.currentStreak).toBe(0);
@@ -102,10 +102,10 @@ describe('Stats Storage', () => {
       lastPlayedDaily: 42,
       lastCompletedDaily: 42,
     };
-    
+
     saveStats(stats);
     const loaded = loadStats();
-    
+
     expect(loaded.gamesPlayed).toBe(10);
     expect(loaded.gamesWon).toBe(8);
     expect(loaded.currentStreak).toBe(3);
@@ -214,10 +214,10 @@ describe('Settings Storage', () => {
       preferredBoardCount: 16,
       preferredMaxGuesses: 20,
     };
-    
+
     saveSettings(settings);
     const loaded = loadSettings();
-    
+
     expect(loaded.glowMode).toBe(true);
     expect(loaded.feedbackEnabled).toBe(false);
     expect(loaded.preferredWordLength).toBe(5);
@@ -230,7 +230,7 @@ describe('createInitialBoards', () => {
   it('creates board states from answers', () => {
     const answers = ['CASTLE', 'DRAGON', 'BRIDGE'];
     const boards = createInitialBoards(answers);
-    
+
     expect(boards).toHaveLength(3);
     expect(boards[0]).toEqual({ answer: 'CASTLE', solved: false, solvedAtGuess: null });
     expect(boards[1]).toEqual({ answer: 'DRAGON', solved: false, solvedAtGuess: null });

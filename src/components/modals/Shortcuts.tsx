@@ -34,7 +34,7 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
         onClick={onClose}
       >
         <motion.div
@@ -42,16 +42,19 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-bg-secondary rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+          className="bg-bg-secondary max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl p-6"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <Keyboard className="w-6 h-6 text-accent" />
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-2xl font-bold">
+              <Keyboard className="text-accent h-6 w-6" />
               Shortcuts
             </h2>
-            <button onClick={onClose} className="p-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer">
-              <X className="w-5 h-5" />
+            <button
+              onClick={onClose}
+              className="cursor-pointer rounded-md p-2 transition-colors hover:bg-white/10"
+            >
+              <X className="h-5 w-5" />
             </button>
           </div>
 
@@ -59,10 +62,12 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
             {shortcuts.map((shortcut) => (
               <div
                 key={shortcut.keyLabel}
-                className="flex items-center justify-between gap-4 rounded-md bg-bg-tertiary/60 border border-white/10 px-3 py-2"
+                className="bg-bg-tertiary/60 flex items-center justify-between gap-4 rounded-md border border-white/10 px-3 py-2"
               >
-                <span className="font-mono text-sm text-accent">{shortcut.keyLabel}</span>
-                <span className="text-sm text-text-secondary text-right">{shortcut.description}</span>
+                <span className="text-accent font-mono text-sm">{shortcut.keyLabel}</span>
+                <span className="text-text-secondary text-right text-sm">
+                  {shortcut.description}
+                </span>
               </div>
             ))}
           </div>

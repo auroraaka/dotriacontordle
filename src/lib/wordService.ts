@@ -11,7 +11,11 @@ class WordService {
 
   private ensureLoaded(wordLength: number): void {
     const normalizedLength = this.normalizeLength(wordLength);
-    if (this.validWordsByLength.has(normalizedLength) && this.answerPoolByLength.has(normalizedLength)) return;
+    if (
+      this.validWordsByLength.has(normalizedLength) &&
+      this.answerPoolByLength.has(normalizedLength)
+    )
+      return;
 
     if (!hasDictionaryForLength(normalizedLength)) {
       this.validWordsByLength.set(normalizedLength, new Set());
@@ -61,11 +65,13 @@ class WordService {
 
     return shuffled.slice(0, normalizedCount);
   }
-
 }
 
 export const wordService = new WordService();
 
-export const isValidWord = (word: string, wordLength = DEFAULT_WORD_LENGTH) => wordService.isValidWord(word, wordLength);
-export const getRandomAnswers = (count: number, wordLength = DEFAULT_WORD_LENGTH) => wordService.getRandomAnswers(count, wordLength);
-export const initializeWordService = (wordLength = DEFAULT_WORD_LENGTH) => wordService.initialize(wordLength);
+export const isValidWord = (word: string, wordLength = DEFAULT_WORD_LENGTH) =>
+  wordService.isValidWord(word, wordLength);
+export const getRandomAnswers = (count: number, wordLength = DEFAULT_WORD_LENGTH) =>
+  wordService.getRandomAnswers(count, wordLength);
+export const initializeWordService = (wordLength = DEFAULT_WORD_LENGTH) =>
+  wordService.initialize(wordLength);

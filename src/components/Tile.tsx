@@ -32,7 +32,7 @@ export function Tile({ letter, state, delay = 0, size = 'normal', animate = true
 
   return (
     <motion.div
-      className={`flex items-center justify-center font-bold uppercase select-none transition-colors duration-100 ${stateStyles[state]} ${sizeStyles[size]}`}
+      className={`flex items-center justify-center font-bold uppercase transition-colors duration-100 select-none ${stateStyles[state]} ${sizeStyles[size]}`}
       initial={shouldAnimate ? { rotateX: 0 } : false}
       animate={shouldAnimate ? { rotateX: 360 } : false}
       transition={{ duration: 0.3, delay, ease: 'easeOut' }}

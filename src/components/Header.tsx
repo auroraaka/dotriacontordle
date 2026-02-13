@@ -1,7 +1,17 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { HelpCircle, BarChart3, Settings, Clock, Pause, Play, Volume2, VolumeX, Keyboard as KeyboardIcon } from 'lucide-react';
+import {
+  HelpCircle,
+  BarChart3,
+  Settings,
+  Clock,
+  Pause,
+  Play,
+  Volume2,
+  VolumeX,
+  Keyboard as KeyboardIcon,
+} from 'lucide-react';
 import { useGameActions, useGameBoards } from '@/context/GameContext';
 import { HowToPlayModal } from './modals/HowToPlay';
 import { StatsModal } from './modals/Stats';
@@ -68,7 +78,11 @@ export function Header() {
     const apply = () => setFeedbackEnabled(loadSettings().feedbackEnabled);
     const onSettingsChanged = () => apply();
     window.addEventListener('dotriacontordle_settings_changed', onSettingsChanged as EventListener);
-    return () => window.removeEventListener('dotriacontordle_settings_changed', onSettingsChanged as EventListener);
+    return () =>
+      window.removeEventListener(
+        'dotriacontordle_settings_changed',
+        onSettingsChanged as EventListener
+      );
   }, []);
 
   const toggleFeedback = async () => {
@@ -100,23 +114,26 @@ export function Header() {
 
   return (
     <>
-      <header className="w-full border-b border-header-border bg-bg-secondary/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-3 py-2 sm:px-4 sm:py-3 flex items-center justify-between">
+      <header className="border-header-border bg-bg-secondary/50 sticky top-0 z-40 w-full border-b backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-2 sm:px-4 sm:py-3">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
               <span className="text-accent">DOTRIA</span>
               <span className="text-text-primary">CONTORDLE</span>
             </h1>
-            <span className="text-xs text-text-secondary hidden sm:inline">
-              {state.config.boardCount} words • {state.config.wordLength} letters • {state.config.maxGuesses} guesses
+            <span className="text-text-secondary hidden text-xs sm:inline">
+              {state.config.boardCount} words • {state.config.wordLength} letters •{' '}
+              {state.config.maxGuesses} guesses
             </span>
           </div>
 
           <div className="flex items-center gap-2 text-sm">
-            <div className="hidden sm:flex items-center gap-4 mr-4">
+            <div className="mr-4 hidden items-center gap-4 sm:flex">
               <span className="text-text-secondary flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                <span className={`${timerActive ? 'text-accent' : 'text-text-secondary'} font-bold tabular-nums`}>
+                <Clock className="h-4 w-4" />
+                <span
+                  className={`${timerActive ? 'text-accent' : 'text-text-secondary'} font-bold tabular-nums`}
+                >
                   {timerDisplay}
                 </span>
                 <button
@@ -125,36 +142,55 @@ export function Header() {
                   disabled={state.gameStatus !== 'playing'}
                   title="Start/stop timer (Space)"
                   className={[
-                    'ml-1 p-1 rounded border transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
-                    toggleFlash ? 'border-accent ring-2 ring-accent/60 shadow-[0_0_18px_rgba(34,211,238,0.35)]' : 'border-transparent hover:bg-white/10',
+                    'ml-1 rounded border p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                    toggleFlash
+                      ? 'border-accent ring-accent/60 shadow-[0_0_18px_rgba(34,211,238,0.35)] ring-2'
+                      : 'border-transparent hover:bg-white/10',
                   ].join(' ')}
                 >
-                  {state.timerRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  {state.timerRunning ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
                 </button>
               </span>
               <span className="text-text-secondary">
-                Solved: <span className="text-accent font-bold">{solvedCount}/{state.boards.length}</span>
+                Solved:{' '}
+                <span className="text-accent font-bold">
+                  {solvedCount}/{state.boards.length}
+                </span>
               </span>
               <span className="text-text-secondary">
-                Guesses: <span className="text-accent font-bold">{state.guesses.length}/{state.config.maxGuesses}</span>
+                Guesses:{' '}
+                <span className="text-accent font-bold">
+                  {state.guesses.length}/{state.config.maxGuesses}
+                </span>
               </span>
             </div>
 
             <div className="flex items-center gap-1">
-              <IconButton onClick={toggleFeedback} title={feedbackEnabled ? 'Mute (sound + haptics)' : 'Unmute (sound + haptics)'}>
-                {feedbackEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              <IconButton
+                onClick={toggleFeedback}
+                title={feedbackEnabled ? 'Mute (sound + haptics)' : 'Unmute (sound + haptics)'}
+              >
+                {feedbackEnabled ? (
+                  <Volume2 className="h-5 w-5" />
+                ) : (
+                  <VolumeX className="h-5 w-5" />
+                )}
               </IconButton>
               <IconButton onClick={() => setShowShortcuts(true)} title="Keyboard Shortcuts">
-                <KeyboardIcon className="w-5 h-5" />
+                <KeyboardIcon className="h-5 w-5" />
               </IconButton>
               <IconButton onClick={() => setShowHowToPlay(true)} title="How to Play">
-                <HelpCircle className="w-5 h-5" />
+                <HelpCircle className="h-5 w-5" />
               </IconButton>
               <IconButton onClick={() => setShowStats(true)} title="Statistics">
-                <BarChart3 className="w-5 h-5" />
+                <BarChart3 className="h-5 w-5" />
               </IconButton>
               <IconButton onClick={() => setShowSettings(true)} title="Settings">
-                <Settings className="w-5 h-5" />
+                <Settings className="h-5 w-5" />
               </IconButton>
               {state.gameStatus !== 'playing' && (
                 <button
@@ -162,7 +198,7 @@ export function Header() {
                     if (state.gameMode === 'free') newGame('free');
                     else switchMode('free');
                   }}
-                  className="ml-2 px-3 py-1.5 bg-accent text-white rounded-md text-sm font-medium hover:bg-accent/80 transition-colors cursor-pointer"
+                  className="bg-accent hover:bg-accent/80 ml-2 cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors"
                 >
                   New Game
                 </button>
@@ -171,10 +207,12 @@ export function Header() {
           </div>
         </div>
 
-        <div className="sm:hidden border-t border-header-border px-3 py-1.5 flex justify-center gap-6 text-xs">
+        <div className="border-header-border flex justify-center gap-6 border-t px-3 py-1.5 text-xs sm:hidden">
           <span className="text-text-secondary flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            <span className={`${timerActive ? 'text-accent' : 'text-text-secondary'} font-bold tabular-nums`}>
+            <Clock className="h-3.5 w-3.5" />
+            <span
+              className={`${timerActive ? 'text-accent' : 'text-text-secondary'} font-bold tabular-nums`}
+            >
               {timerDisplay}
             </span>
             <button
@@ -183,18 +221,30 @@ export function Header() {
               disabled={state.gameStatus !== 'playing'}
               title="Start/stop timer (Space)"
               className={[
-                'ml-1 p-1 rounded border transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
-                toggleFlash ? 'border-accent ring-2 ring-accent/60 shadow-[0_0_14px_rgba(34,211,238,0.35)]' : 'border-transparent hover:bg-white/10',
+                'ml-1 rounded border p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                toggleFlash
+                  ? 'border-accent ring-accent/60 shadow-[0_0_14px_rgba(34,211,238,0.35)] ring-2'
+                  : 'border-transparent hover:bg-white/10',
               ].join(' ')}
             >
-              {state.timerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              {state.timerRunning ? (
+                <Pause className="h-3.5 w-3.5" />
+              ) : (
+                <Play className="h-3.5 w-3.5" />
+              )}
             </button>
           </span>
           <span className="text-text-secondary">
-            Solved: <span className="text-accent font-bold">{solvedCount}/{state.boards.length}</span>
+            Solved:{' '}
+            <span className="text-accent font-bold">
+              {solvedCount}/{state.boards.length}
+            </span>
           </span>
           <span className="text-text-secondary">
-            Guesses: <span className="text-accent font-bold">{state.guesses.length}/{state.config.maxGuesses}</span>
+            Guesses:{' '}
+            <span className="text-accent font-bold">
+              {state.guesses.length}/{state.config.maxGuesses}
+            </span>
           </span>
         </div>
       </header>
@@ -220,7 +270,7 @@ function IconButton({
     <button
       onClick={onClick}
       title={title}
-      className="p-2 rounded-md hover:bg-white/10 transition-colors text-text-secondary hover:text-text-primary cursor-pointer"
+      className="text-text-secondary hover:text-text-primary cursor-pointer rounded-md p-2 transition-colors hover:bg-white/10"
     >
       {children}
     </button>

@@ -1,13 +1,16 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, useRef, useState } from 'react';
-import {
-  GameState,
-  GameStats,
-  BoardState,
-  TileState,
-  GameConfig,
-} from '@/types/game';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { GameState, GameStats, BoardState, TileState, GameConfig } from '@/types/game';
 import { isValidWord, initializeWordService } from '@/lib/wordService';
 import { getRandomAnswers } from '@/lib/answers';
 import { getDailyNumber, getDailyAnswers } from '@/lib/daily';
@@ -106,12 +109,12 @@ function createInitialState(
   configOverride?: Partial<GameConfig>
 ): GameState {
   const config = normalizeGameConfig(configOverride ?? DEFAULT_GAME_CONFIG);
-  const dailyNumber = mode === 'daily'
-    ? (dailyNumberOverride ?? getDailyNumber())
-    : getDailyNumber();
-  const answers = mode === 'daily'
-    ? getDailyAnswers(dailyNumber, config)
-    : getRandomAnswers(config.boardCount, config.wordLength);
+  const dailyNumber =
+    mode === 'daily' ? (dailyNumberOverride ?? getDailyNumber()) : getDailyNumber();
+  const answers =
+    mode === 'daily'
+      ? getDailyAnswers(dailyNumber, config)
+      : getRandomAnswers(config.boardCount, config.wordLength);
 
   return {
     config,
@@ -208,9 +211,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         gameStatus: newStatus,
         startedAt: shouldStart ? now : state.startedAt,
         endedAt: willEnd ? (state.endedAt ?? now) : null,
-        timerRunning: willEnd ? false : (shouldStart ? true : state.timerRunning),
+        timerRunning: willEnd ? false : shouldStart ? true : state.timerRunning,
         timerBaseElapsedMs: willEnd ? finalizedElapsedMs : state.timerBaseElapsedMs,
-        timerResumedAt: willEnd ? null : (shouldStart ? now : state.timerResumedAt),
+        timerResumedAt: willEnd ? null : shouldStart ? now : state.timerResumedAt,
       };
     }
 
@@ -297,10 +300,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    
+
     async function init() {
       setIsLoadingWords(true);
-      
+
       try {
         await initializeWordService(state.config.wordLength);
       } catch (e) {
@@ -311,18 +314,20 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         }
       }
     }
-    
+
     init();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [state.config.wordLength]);
 
   useEffect(() => {
     if (isLoadingWords || hasBootstrappedRef.current) return;
-    
+
     const dailyNumber = getDailyNumber();
     const preferredConfig = getPreferredConfigFromSettings();
     const lastMode = getLastPlayedMode();
-    
+
     if (lastMode === 'free') {
       const savedFree = loadGameState('free', undefined, preferredConfig);
       if (savedFree && savedFree.gameStatus === 'playing') {
@@ -367,7 +372,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       );
       setStats(newStats);
     }
-  }, [state.gameStatus, isInitialized, state.guesses.length, state.gameMode, state.dailyNumber, state.config]);
+  }, [
+    state.gameStatus,
+    isInitialized,
+    state.guesses.length,
+    state.gameMode,
+    state.dailyNumber,
+    state.config,
+  ]);
 
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -394,7 +406,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const addLetter = useCallback((letter: string) => {
     setError(null);
     const current = stateRef.current;
-    if (current.gameStatus === 'playing' && current.currentGuess.length < current.config.wordLength) {
+    if (
+      current.gameStatus === 'playing' &&
+      current.currentGuess.length < current.config.wordLength
+    ) {
       void triggerFeedback('key');
     }
     dispatch({ type: 'ADD_LETTER', letter });
@@ -412,7 +427,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const submitGuess = useCallback(async () => {
     void primeFeedback();
     if (isValidatingRef.current) return;
-    
+
     const current = stateRef.current;
     const guess = current.currentGuess;
 
@@ -427,7 +442,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       void triggerFeedback('error');
       return;
     }
-    
+
     isValidatingRef.current = true;
     setIsValidating(true);
     try {
@@ -477,68 +492,79 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_EXPANDED_BOARD', boardIndex });
   }, []);
 
-  const newGame = useCallback((mode: 'daily' | 'free', dailyNumber?: number, config?: Partial<GameConfig>) => {
-    setError(null);
-    dispatch({ type: 'NEW_GAME', mode, dailyNumber, config });
-  }, []);
+  const newGame = useCallback(
+    (mode: 'daily' | 'free', dailyNumber?: number, config?: Partial<GameConfig>) => {
+      setError(null);
+      dispatch({ type: 'NEW_GAME', mode, dailyNumber, config });
+    },
+    []
+  );
 
-  const switchMode = useCallback((mode: 'daily' | 'free', dailyNumber?: number, config?: Partial<GameConfig>) => {
-    setError(null);
-    const current = stateRef.current;
-    const nextConfig = normalizeGameConfig(config ?? current.config);
-    const targetDailyNumber = mode === 'daily' ? (dailyNumber ?? getDailyNumber()) : undefined;
-    const switchingModes = current.gameMode !== mode;
-    const switchingDailySeed =
-      mode === 'daily' &&
-      current.gameMode === 'daily' &&
-      current.dailyNumber !== targetDailyNumber;
-    const switchingConfig = current.config.profileId !== nextConfig.profileId;
+  const switchMode = useCallback(
+    (mode: 'daily' | 'free', dailyNumber?: number, config?: Partial<GameConfig>) => {
+      setError(null);
+      const current = stateRef.current;
+      const nextConfig = normalizeGameConfig(config ?? current.config);
+      const targetDailyNumber = mode === 'daily' ? (dailyNumber ?? getDailyNumber()) : undefined;
+      const switchingModes = current.gameMode !== mode;
+      const switchingDailySeed =
+        mode === 'daily' &&
+        current.gameMode === 'daily' &&
+        current.dailyNumber !== targetDailyNumber;
+      const switchingConfig = current.config.profileId !== nextConfig.profileId;
 
-    if (!switchingModes && !switchingDailySeed && !switchingConfig) return;
+      if (!switchingModes && !switchingDailySeed && !switchingConfig) return;
 
-    const savedState = mode === 'daily'
-      ? loadGameState('daily', targetDailyNumber, nextConfig)
-      : loadGameState('free', undefined, nextConfig);
-    const hasInProgressState =
-      savedState?.gameStatus === 'playing' &&
-      ((savedState.guesses?.length ?? 0) > 0 || (savedState.currentGuess?.length ?? 0) > 0);
+      const savedState =
+        mode === 'daily'
+          ? loadGameState('daily', targetDailyNumber, nextConfig)
+          : loadGameState('free', undefined, nextConfig);
+      const hasInProgressState =
+        savedState?.gameStatus === 'playing' &&
+        ((savedState.guesses?.length ?? 0) > 0 || (savedState.currentGuess?.length ?? 0) > 0);
 
-    if (hasInProgressState) {
-      const isTodayDaily = mode === 'daily' && targetDailyNumber === getDailyNumber();
-      const modeLabel = mode === 'free'
-        ? 'Free Play'
-        : isTodayDaily
-          ? 'Daily Puzzle'
-          : `Daily #${targetDailyNumber}`;
+      if (hasInProgressState) {
+        const isTodayDaily = mode === 'daily' && targetDailyNumber === getDailyNumber();
+        const modeLabel =
+          mode === 'free'
+            ? 'Free Play'
+            : isTodayDaily
+              ? 'Daily Puzzle'
+              : `Daily #${targetDailyNumber}`;
 
-      const resume = window.confirm(
-        `Resume your in-progress ${modeLabel} game? Press Cancel to start a new one.`
-      );
+        const resume = window.confirm(
+          `Resume your in-progress ${modeLabel} game? Press Cancel to start a new one.`
+        );
 
-      if (resume) {
-        dispatch({ type: 'LOAD_STATE', state: savedState });
-        return;
+        if (resume) {
+          dispatch({ type: 'LOAD_STATE', state: savedState });
+          return;
+        }
       }
-    }
 
-    dispatch({ type: 'NEW_GAME', mode, dailyNumber: targetDailyNumber, config: nextConfig });
-  }, []);
+      dispatch({ type: 'NEW_GAME', mode, dailyNumber: targetDailyNumber, config: nextConfig });
+    },
+    []
+  );
 
-  const getEvaluationForBoard = useCallback((boardIndex: number, guessIndex: number): TileState[] => {
-    const current = stateRef.current;
-    const board = current.boards[boardIndex];
-    const guess = current.guesses[guessIndex];
+  const getEvaluationForBoard = useCallback(
+    (boardIndex: number, guessIndex: number): TileState[] => {
+      const current = stateRef.current;
+      const board = current.boards[boardIndex];
+      const guess = current.guesses[guessIndex];
 
-    if (!board || !guess) {
-      return new Array(current.config.wordLength).fill('empty');
-    }
+      if (!board || !guess) {
+        return new Array(current.config.wordLength).fill('empty');
+      }
 
-    if (board.solved && board.solvedAtGuess !== null && guessIndex > board.solvedAtGuess) {
-      return new Array(current.config.wordLength).fill('empty');
-    }
+      if (board.solved && board.solvedAtGuess !== null && guessIndex > board.solvedAtGuess) {
+        return new Array(current.config.wordLength).fill('empty');
+      }
 
-    return evaluateGuess(guess, board.answer, current.config.wordLength).states;
-  }, []);
+      return evaluateGuess(guess, board.answer, current.config.wordLength).states;
+    },
+    []
+  );
 
   const boardsValue = useMemo<GameBoardsSnapshot>(
     () => ({
@@ -577,7 +603,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     ]
   );
 
-  const inputValue = useMemo<GameInputSnapshot>(() => ({ currentGuess: state.currentGuess }), [state.currentGuess]);
+  const inputValue = useMemo<GameInputSnapshot>(
+    () => ({ currentGuess: state.currentGuess }),
+    [state.currentGuess]
+  );
 
   const actionsValue = useMemo<GameActions>(
     () => ({
@@ -590,7 +619,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       switchMode,
       getEvaluationForBoard,
     }),
-    [addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard, newGame, switchMode, getEvaluationForBoard]
+    [
+      addLetter,
+      removeLetter,
+      submitGuess,
+      toggleTimer,
+      setExpandedBoard,
+      newGame,
+      switchMode,
+      getEvaluationForBoard,
+    ]
   );
 
   const auxValue = useMemo<GameAux>(
@@ -614,7 +652,21 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       switchMode,
       getEvaluationForBoard,
     }),
-    [state, stats, error, isLoadingWords, isValidating, addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard, newGame, switchMode, getEvaluationForBoard]
+    [
+      state,
+      stats,
+      error,
+      isLoadingWords,
+      isValidating,
+      addLetter,
+      removeLetter,
+      submitGuess,
+      toggleTimer,
+      setExpandedBoard,
+      newGame,
+      switchMode,
+      getEvaluationForBoard,
+    ]
   );
 
   return (

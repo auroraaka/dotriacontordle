@@ -30,7 +30,9 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-export function createProfileId(config: Pick<GameConfig, 'wordLength' | 'boardCount' | 'maxGuesses'>): string {
+export function createProfileId(
+  config: Pick<GameConfig, 'wordLength' | 'boardCount' | 'maxGuesses'>
+): string {
   return `${config.wordLength}x${config.boardCount}x${config.maxGuesses}`;
 }
 
@@ -45,7 +47,10 @@ export function normalizeGameConfig(input?: Partial<GameConfig> | null): GameCon
     MIN_BOARD_COUNT,
     MAX_BOARD_COUNT
   );
-  const maxGuesses = Math.max(MIN_GUESS_COUNT, toSafeInteger(input?.maxGuesses, DEFAULT_MAX_GUESSES));
+  const maxGuesses = Math.max(
+    MIN_GUESS_COUNT,
+    toSafeInteger(input?.maxGuesses, DEFAULT_MAX_GUESSES)
+  );
 
   return {
     wordLength,
@@ -58,4 +63,3 @@ export function normalizeGameConfig(input?: Partial<GameConfig> | null): GameCon
 export function getDefaultMaxGuesses(wordLength: number, boardCount: number): number {
   return Math.max(MIN_GUESS_COUNT, boardCount + wordLength - 1);
 }
-

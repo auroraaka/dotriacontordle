@@ -32,40 +32,35 @@ export function Keyboard() {
 
     if (key === 'ENTER') {
       if (!isValidating) submitGuess();
-    }
-    else if (key === 'BACKSPACE') removeLetter();
+    } else if (key === 'BACKSPACE') removeLetter();
     else addLetter(key);
   };
 
   return (
-    <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-full max-w-[600px] mx-auto">
+    <div className="mx-auto flex w-full max-w-[600px] flex-col items-center gap-1 sm:gap-1.5">
       {KEYBOARD_ROWS.map((row, rowIndex) => (
-        <div key={rowIndex} className="flex gap-1 sm:gap-1.5 justify-center w-full">
+        <div key={rowIndex} className="flex w-full justify-center gap-1 sm:gap-1.5">
           {row.map((key) => {
             const isSpecial = key === 'ENTER' || key === 'BACKSPACE';
             const keyState = keyboardState[key] || 'default';
             const specialStyle =
-              key === 'BACKSPACE'
-                ? 'key-backspace'
-                : key === 'ENTER'
-                ? 'key-enter'
-                : '';
+              key === 'BACKSPACE' ? 'key-backspace' : key === 'ENTER' ? 'key-enter' : '';
 
             return (
               <motion.button
                 key={key}
                 onClick={() => handleKeyClick(key)}
                 whileTap={{ scale: 0.95 }}
-                className={`
-                  ${isSpecial ? specialStyle : KEY_STATE_STYLES[keyState]}
-                  ${isSpecial ? 'px-1.5 xs:px-2 sm:px-3 md:px-4 text-[10px] sm:text-xs' : 'flex-1 max-w-[36px] xs:max-w-[40px] sm:max-w-[52px]'}
-                  h-9 xs:h-10 sm:h-12 md:h-14 rounded-md font-semibold text-white text-[11px] xs:text-sm sm:text-base
-                  flex items-center justify-center transition-colors duration-150
-                  cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
-                `}
+                className={` ${isSpecial ? specialStyle : KEY_STATE_STYLES[keyState]} ${isSpecial ? 'xs:px-2 px-1.5 text-[10px] sm:px-3 sm:text-xs md:px-4' : 'xs:max-w-[40px] max-w-[36px] flex-1 sm:max-w-[52px]'} xs:h-10 xs:text-sm flex h-9 cursor-pointer items-center justify-center rounded-md text-[11px] font-semibold text-white transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 sm:h-12 sm:text-base md:h-14`}
                 disabled={disabled}
               >
-                {key === 'BACKSPACE' ? <Delete className="w-5 h-5" /> : key === 'ENTER' ? <CornerDownLeft className="w-5 h-5" /> : key}
+                {key === 'BACKSPACE' ? (
+                  <Delete className="h-5 w-5" />
+                ) : key === 'ENTER' ? (
+                  <CornerDownLeft className="h-5 w-5" />
+                ) : (
+                  key
+                )}
               </motion.button>
             );
           })}

@@ -6,10 +6,38 @@ import { isValidWord } from '@/lib/wordService';
 import { MAX_GUESSES } from '@/types/game';
 
 const MOCK_ANSWERS = [
-  'ACTION', 'ANIMAL', 'ANSWER', 'BEAUTY', 'BEFORE', 'BETTER', 'BORDER', 'BOTTLE',
-  'BRANCH', 'BREATH', 'BRIDGE', 'BRIGHT', 'BROKEN', 'BUDGET', 'BUTTON', 'CAMERA',
-  'CANCEL', 'CARBON', 'CAREER', 'CASTLE', 'CAUGHT', 'CENTER', 'CHANCE', 'CHANGE',
-  'CHARGE', 'CHEESE', 'CHOICE', 'CHURCH', 'CIRCLE', 'CLIENT', 'CLOSED', 'COFFEE',
+  'ACTION',
+  'ANIMAL',
+  'ANSWER',
+  'BEAUTY',
+  'BEFORE',
+  'BETTER',
+  'BORDER',
+  'BOTTLE',
+  'BRANCH',
+  'BREATH',
+  'BRIDGE',
+  'BRIGHT',
+  'BROKEN',
+  'BUDGET',
+  'BUTTON',
+  'CAMERA',
+  'CANCEL',
+  'CARBON',
+  'CAREER',
+  'CASTLE',
+  'CAUGHT',
+  'CENTER',
+  'CHANCE',
+  'CHANGE',
+  'CHARGE',
+  'CHEESE',
+  'CHOICE',
+  'CHURCH',
+  'CIRCLE',
+  'CLIENT',
+  'CLOSED',
+  'COFFEE',
 ];
 
 vi.mock('@/lib/wordService', async () => {
@@ -54,9 +82,7 @@ function Harness({ customWord }: HarnessProps) {
       <div data-testid="gameStatus">{state.gameStatus}</div>
       <div data-testid="isValidating">{isValidating ? 'true' : 'false'}</div>
       <div data-testid="guessCount">{state.guesses.length}</div>
-      <div data-testid="solvedBoards">
-        {state.boards.filter(b => b.solved).length}
-      </div>
+      <div data-testid="solvedBoards">{state.boards.filter((b) => b.solved).length}</div>
       <div data-testid="keyboardState">{JSON.stringify(state.keyboardState)}</div>
       <button onClick={() => newGame('free')}>new</button>
       <button onClick={() => typeWord(customWord || 'ABROAD')}>type</button>
@@ -426,7 +452,11 @@ describe('Game input mechanics', () => {
 
       const saved = localStorage.getItem('dotriacontordle_daily_state_42');
       expect(saved).not.toBeNull();
-      const parsed = JSON.parse(saved as string) as { gameStatus: string; currentGuess: string; guesses: string[] };
+      const parsed = JSON.parse(saved as string) as {
+        gameStatus: string;
+        currentGuess: string;
+        guesses: string[];
+      };
       expect(parsed.gameStatus).toBe('lost');
       expect(parsed.currentGuess).toBe('');
       expect(parsed.guesses).toHaveLength(MAX_GUESSES);

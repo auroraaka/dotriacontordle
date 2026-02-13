@@ -33,22 +33,25 @@ export const WordGrid = memo(function WordGrid({
   const board = boards[boardIndex];
   const wordLength = config.wordLength;
 
-  const relevantGuesses = board.solved && board.solvedAtGuess !== null
-    ? guesses.slice(0, board.solvedAtGuess + 1)
-    : guesses;
+  const relevantGuesses =
+    board.solved && board.solvedAtGuess !== null
+      ? guesses.slice(0, board.solvedAtGuess + 1)
+      : guesses;
 
   const displayGuesses = maxRows ? relevantGuesses.slice(-maxRows) : relevantGuesses;
 
   const statusClass = hideStatusRing
     ? ''
     : board.solved
-    ? 'ring-2 ring-tile-correct/50'
-    : gameStatus === 'lost'
-    ? 'ring-2 ring-red-500/50'
-    : '';
+      ? 'ring-2 ring-tile-correct/50'
+      : gameStatus === 'lost'
+        ? 'ring-2 ring-red-500/50'
+        : '';
 
   return (
-    <div className={`flex flex-col gap-0.5 p-1 rounded-lg ${noBg ? '' : 'bg-bg-tertiary/50'} ${statusClass} ${mini ? 'gap-px p-0.5' : 'gap-1 p-2'}`}>
+    <div
+      className={`flex flex-col gap-0.5 rounded-lg p-1 ${noBg ? '' : 'bg-bg-tertiary/50'} ${statusClass} ${mini ? 'gap-px p-0.5' : 'gap-1 p-2'}`}
+    >
       {displayGuesses.map((guess, guessIdx) => {
         const actualGuessIndex = maxRows
           ? relevantGuesses.length - displayGuesses.length + guessIdx
@@ -108,9 +111,10 @@ export const MiniWordGrid = memo(function MiniWordGrid({
   const board = boards[boardIndex];
   const wordLength = config.wordLength;
 
-  const relevantGuesses = board.solved && board.solvedAtGuess !== null
-    ? guesses.slice(0, board.solvedAtGuess + 1)
-    : guesses;
+  const relevantGuesses =
+    board.solved && board.solvedAtGuess !== null
+      ? guesses.slice(0, board.solvedAtGuess + 1)
+      : guesses;
 
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const [miniLayout, setMiniLayout] = useState(() => ({
@@ -198,8 +202,8 @@ export const MiniWordGrid = memo(function MiniWordGrid({
   const statusClass = board.solved
     ? 'ring-2 ring-tile-correct shadow-glow-green'
     : gameStatus === 'lost'
-    ? 'ring-2 ring-red-500'
-    : 'hover:ring-2 hover:ring-accent/50';
+      ? 'ring-2 ring-red-500'
+      : 'hover:ring-2 hover:ring-accent/50';
 
   const indicatorSummary = (() => {
     if (relevantGuesses.length === 0) return null;
@@ -229,28 +233,28 @@ export const MiniWordGrid = memo(function MiniWordGrid({
       onClick={onClick}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`relative flex flex-col gap-px sm:gap-0.5 md:gap-1 p-0.5 sm:p-0.5 md:p-1 lg:p-1.5 rounded-md lg:rounded-lg bg-bg-tertiary cursor-pointer transition-all duration-200 h-full min-w-0 ${statusClass}`}
+      className={`bg-bg-tertiary relative flex h-full min-w-0 cursor-pointer flex-col gap-px rounded-md p-0.5 transition-all duration-200 sm:gap-0.5 sm:p-0.5 md:gap-1 md:p-1 lg:rounded-lg lg:p-1.5 ${statusClass}`}
     >
-      <span className="absolute -top-1 -left-1 sm:-top-1.5 sm:-left-1.5 md:-top-2 md:-left-2 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 bg-bg-secondary rounded-full text-[7px] sm:text-[8px] md:text-[10px] flex items-center justify-center text-text-secondary font-bold z-10 border border-header-border">
+      <span className="bg-bg-secondary text-text-secondary border-header-border absolute -top-1 -left-1 z-10 flex h-3.5 w-3.5 items-center justify-center rounded-full border text-[7px] font-bold sm:-top-1.5 sm:-left-1.5 sm:h-4 sm:w-4 sm:text-[8px] md:-top-2 md:-left-2 md:h-5 md:w-5 md:text-[10px]">
         {boardIndex + 1}
       </span>
 
       {indicatorSummary && !board.solved && (
         <div
-          className="absolute -top-1 right-1 sm:-top-1.5 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto md:-top-2 flex items-center gap-0.5 pointer-events-none select-none z-10"
+          className="pointer-events-none absolute -top-1 right-1 z-10 flex items-center gap-0.5 select-none sm:-top-1.5 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 md:-top-2"
           aria-label={`Board ${boardIndex + 1}: ${indicatorSummary.correct} green, ${indicatorSummary.present} yellow`}
           title={`${indicatorSummary.correct} green • ${indicatorSummary.present} yellow (cumulative)`}
         >
-          <div className="flex sm:hidden items-center gap-0.5">
+          <div className="flex items-center gap-0.5 sm:hidden">
             <span
-              className={`w-3.5 h-3.5 bg-bg-secondary rounded-full text-[8px] flex items-center justify-center font-bold border border-tile-correct text-tile-correct shadow-[0_0_10px_rgba(34,197,94,0.25)] ${
+              className={`bg-bg-secondary border-tile-correct text-tile-correct flex h-3.5 w-3.5 items-center justify-center rounded-full border text-[8px] font-bold shadow-[0_0_10px_rgba(34,197,94,0.25)] ${
                 indicatorSummary.correct === 0 ? 'opacity-40' : 'opacity-95'
               }`}
             >
               {indicatorSummary.correct}
             </span>
             <span
-              className={`w-3.5 h-3.5 bg-bg-secondary rounded-full text-[8px] flex items-center justify-center font-bold border border-tile-present text-tile-present shadow-[0_0_10px_rgba(234,179,8,0.22)] ${
+              className={`bg-bg-secondary border-tile-present text-tile-present flex h-3.5 w-3.5 items-center justify-center rounded-full border text-[8px] font-bold shadow-[0_0_10px_rgba(234,179,8,0.22)] ${
                 indicatorSummary.present === 0 ? 'opacity-40' : 'opacity-95'
               }`}
             >
@@ -258,18 +262,18 @@ export const MiniWordGrid = memo(function MiniWordGrid({
             </span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-0.5 px-1 py-0.5 bg-bg-secondary/85 border border-header-border rounded-full">
+          <div className="bg-bg-secondary/85 border-header-border hidden items-center gap-0.5 rounded-full border px-1 py-0.5 sm:flex">
             {indicatorSummary.best.map((s, idx) => {
               const dotClass =
                 s === 'correct'
                   ? 'bg-tile-correct shadow-[0_0_8px_rgba(34,197,94,0.35)]'
                   : s === 'present'
-                  ? 'bg-tile-present shadow-[0_0_8px_rgba(234,179,8,0.28)]'
-                  : 'bg-tile-absent/60';
+                    ? 'bg-tile-present shadow-[0_0_8px_rgba(234,179,8,0.28)]'
+                    : 'bg-tile-absent/60';
               return (
                 <span
                   key={idx}
-                  className={`w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-2.5 md:h-2.5 rounded-full ${dotClass}`}
+                  className={`h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2 md:h-2.5 md:w-2.5 ${dotClass}`}
                 />
               );
             })}
@@ -281,7 +285,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="absolute inset-0 flex items-center justify-center bg-tile-correct/20 rounded-md lg:rounded-lg z-5"
+          className="bg-tile-correct/20 absolute inset-0 z-5 flex items-center justify-center rounded-md lg:rounded-lg"
         >
           <span className="text-base sm:text-xl md:text-2xl lg:text-3xl">✓</span>
         </motion.div>
@@ -289,7 +293,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
 
       <div
         ref={gridContainerRef}
-        className="flex flex-col flex-1 min-h-0 overflow-hidden rounded-sm min-w-0 w-full justify-end"
+        className="flex min-h-0 w-full min-w-0 flex-1 flex-col justify-end overflow-hidden rounded-sm"
         style={{ gap: `${miniLayout.gapY}px` }}
       >
         {displayGuesses.length < miniLayout.rowsToShow &&
@@ -331,13 +335,7 @@ export const MiniWordGrid = memo(function MiniWordGrid({
               {guess.split('').map((letter, letterIdx) => (
                 <div
                   key={letterIdx}
-                  className={`
-                    font-bold flex items-center justify-center uppercase
-                    ${evaluation[letterIdx] === 'correct' ? 'bg-tile-correct text-white' : ''}
-                    ${evaluation[letterIdx] === 'present' ? 'bg-tile-present text-white' : ''}
-                    ${evaluation[letterIdx] === 'absent' ? 'bg-tile-absent text-white/70' : ''}
-                    ${evaluation[letterIdx] === 'empty' ? 'bg-tile-empty' : ''}
-                  `}
+                  className={`flex items-center justify-center font-bold uppercase ${evaluation[letterIdx] === 'correct' ? 'bg-tile-correct text-white' : ''} ${evaluation[letterIdx] === 'present' ? 'bg-tile-present text-white' : ''} ${evaluation[letterIdx] === 'absent' ? 'bg-tile-absent text-white/70' : ''} ${evaluation[letterIdx] === 'empty' ? 'bg-tile-empty' : ''} `}
                   style={{
                     width: `${miniLayout.tilePx}px`,
                     height: `${miniLayout.tilePx}px`,

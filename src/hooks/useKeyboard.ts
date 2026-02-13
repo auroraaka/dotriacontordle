@@ -43,11 +43,11 @@ export function useKeyboard({
 
       if (onBoardSelect && key >= '0' && key <= '9') {
         event.preventDefault();
-        
+
         if (numberTimeout.current) clearTimeout(numberTimeout.current);
-        
+
         numberBuffer.current += key;
-        
+
         numberTimeout.current = setTimeout(() => {
           const boardNumber = parseInt(numberBuffer.current, 10);
           if (boardNumber >= 1 && boardNumber <= maxBoardNumber) {
@@ -55,7 +55,7 @@ export function useKeyboard({
           }
           numberBuffer.current = '';
         }, 300);
-        
+
         return;
       }
 

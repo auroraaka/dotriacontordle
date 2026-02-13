@@ -24,19 +24,18 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
 
   const boardKeyboardState = useMemo(() => {
     let keyboardState: Record<string, TileState> = {};
-    
-    const relevantGuessCount = board.solved && board.solvedAtGuess !== null
-      ? board.solvedAtGuess + 1
-      : guesses.length;
-    
+
+    const relevantGuessCount =
+      board.solved && board.solvedAtGuess !== null ? board.solvedAtGuess + 1 : guesses.length;
+
     for (let i = 0; i < relevantGuessCount; i++) {
       const guess = guesses[i];
       const evaluation = evaluateGuess(guess, board.answer);
       keyboardState = updateKeyboardState(keyboardState, guess, evaluation.states);
     }
-    
+
     return keyboardState;
-  }, [board.answer, board.solved, board.solvedAtGuess, guesses]); 
+  }, [board.answer, board.solved, board.solvedAtGuess, guesses]);
 
   const indicatorBestByPosition = useMemo(() => {
     const rank: Record<TileState, number> = { empty: 0, absent: 1, present: 2, correct: 3, tbd: 0 };
@@ -53,7 +52,14 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
     }
 
     return best;
-  }, [board.answer, board.solved, board.solvedAtGuess, boardIndex, getEvaluationForBoard, guesses.length]);
+  }, [
+    board.answer,
+    board.solved,
+    board.solvedAtGuess,
+    boardIndex,
+    getEvaluationForBoard,
+    guesses.length,
+  ]);
   const [glowMode, setGlowMode] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevGuessesLenRef = useRef<number>(guesses.length);
@@ -68,7 +74,11 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
     apply();
     const onSettingsChanged = () => apply();
     window.addEventListener('dotriacontordle_settings_changed', onSettingsChanged as EventListener);
-    return () => window.removeEventListener('dotriacontordle_settings_changed', onSettingsChanged as EventListener);
+    return () =>
+      window.removeEventListener(
+        'dotriacontordle_settings_changed',
+        onSettingsChanged as EventListener
+      );
   }, []);
 
   useEffect(() => {
@@ -123,7 +133,7 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 bg-red-500 text-white rounded-md font-medium shadow-lg"
+              className="fixed top-20 left-1/2 z-[60] -translate-x-1/2 rounded-md bg-red-500 px-4 py-2 font-medium text-white shadow-lg"
             >
               {error}
             </motion.div>
@@ -135,26 +145,26 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: 'spring', duration: 0.3 }}
-          className="relative bg-bg-secondary rounded-xl p-4 sm:p-6 max-w-lg w-full mx-4 h-[90vh] max-h-[90vh] flex flex-col"
+          className="bg-bg-secondary relative mx-4 flex h-[90vh] max-h-[90vh] w-full max-w-lg flex-col rounded-xl p-4 sm:p-6"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="relative flex items-center justify-between mb-3 shrink-0">
+          <div className="relative mb-3 flex shrink-0 items-center justify-between">
             <div className="flex items-center gap-3 pr-2">
-              <span className="text-2xl font-bold text-accent">#{boardIndex + 1}</span>
+              <span className="text-accent text-2xl font-bold">#{boardIndex + 1}</span>
               {board.solved && (
-                <span className="px-2 py-1 bg-tile-correct/20 text-tile-correct rounded-md text-sm font-medium">
+                <span className="bg-tile-correct/20 text-tile-correct rounded-md px-2 py-1 text-sm font-medium">
                   SOLVED
                 </span>
               )}
               {gameStatus === 'lost' && !board.solved && (
-                <span className="px-2 py-1 bg-red-500/20 text-red-400 rounded-md text-sm font-medium">
+                <span className="rounded-md bg-red-500/20 px-2 py-1 text-sm font-medium text-red-400">
                   {board.answer}
                 </span>
               )}
             </div>
 
             {!board.solved && gameStatus === 'playing' && (
-              <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+              <div className="pointer-events-none absolute left-1/2 -translate-x-1/2">
                 <div className="flex gap-0.5">
                   {indicatorBestByPosition.map((s, idx) => (
                     <Tile
@@ -171,21 +181,21 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
 
             <button
               onClick={onClose}
-              className="p-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
+              className="cursor-pointer rounded-md p-2 transition-colors hover:bg-white/10"
             >
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="flex-1 min-h-0 flex justify-center items-start mb-5">
-            <div 
+          <div className="mb-5 flex min-h-0 flex-1 items-start justify-center">
+            <div
               ref={scrollContainerRef}
-              className={`self-start max-h-full overflow-y-auto p-2 mb-2 rounded-lg bg-bg-tertiary/50 no-scrollbar ${
-                board.solved 
-                  ? 'ring-2 ring-tile-correct/50' 
-                  : gameStatus === 'lost' 
-                  ? 'ring-2 ring-red-500/50' 
-                  : ''
+              className={`bg-bg-tertiary/50 no-scrollbar mb-2 max-h-full self-start overflow-y-auto rounded-lg p-2 ${
+                board.solved
+                  ? 'ring-tile-correct/50 ring-2'
+                  : gameStatus === 'lost'
+                    ? 'ring-2 ring-red-500/50'
+                    : ''
               }`}
             >
               <WordGrid
@@ -200,34 +210,30 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
           </div>
 
           {gameStatus === 'playing' && (
-            <div className="flex flex-col items-center gap-1 w-full shrink-0 mb-6">
+            <div className="mb-6 flex w-full shrink-0 flex-col items-center gap-1">
               {KEYBOARD_ROWS.map((row, rowIndex) => (
-                <div key={rowIndex} className="flex gap-1 justify-center w-full">
+                <div key={rowIndex} className="flex w-full justify-center gap-1">
                   {row.map((key) => {
                     const isSpecial = key === 'ENTER' || key === 'BACKSPACE';
                     const keyState = boardKeyboardState[key] || 'default';
                     const specialStyle =
-                      key === 'BACKSPACE'
-                        ? 'key-backspace'
-                        : key === 'ENTER'
-                        ? 'key-enter'
-                        : '';
+                      key === 'BACKSPACE' ? 'key-backspace' : key === 'ENTER' ? 'key-enter' : '';
 
                     return (
                       <motion.button
                         key={key}
                         onClick={() => handleKeyClick(key)}
                         whileTap={{ scale: 0.95 }}
-                        className={`
-                          ${isSpecial ? specialStyle : KEY_STATE_STYLES[keyState]}
-                          ${isSpecial ? 'px-2 text-[10px]' : 'flex-1 max-w-[36px]'}
-                          h-10 rounded-md font-semibold text-white text-sm
-                          flex items-center justify-center transition-colors duration-150
-                          cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
-                        `}
+                        className={` ${isSpecial ? specialStyle : KEY_STATE_STYLES[keyState]} ${isSpecial ? 'px-2 text-[10px]' : 'max-w-[36px] flex-1'} flex h-10 cursor-pointer items-center justify-center rounded-md text-sm font-semibold text-white transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50`}
                         disabled={gameStatus !== 'playing'}
                       >
-                        {key === 'BACKSPACE' ? <Delete className="w-4 h-4" /> : key === 'ENTER' ? <CornerDownLeft className="w-4 h-4" /> : key}
+                        {key === 'BACKSPACE' ? (
+                          <Delete className="h-4 w-4" />
+                        ) : key === 'ENTER' ? (
+                          <CornerDownLeft className="h-4 w-4" />
+                        ) : (
+                          key
+                        )}
                       </motion.button>
                     );
                   })}
@@ -236,21 +242,21 @@ export function ExpandedBoard({ boardIndex, onClose, onNavigate }: ExpandedBoard
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-3 border-t border-white/10 shrink-0">
+          <div className="flex shrink-0 items-center justify-between border-t border-white/10 pt-3">
             <button
               onClick={() => onNavigate(-1)}
-              className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
+              className="flex cursor-pointer items-center gap-1 rounded-md px-3 py-2 transition-colors hover:bg-white/10"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="h-4 w-4" />
               Prev
             </button>
 
             <button
               onClick={() => onNavigate(1)}
-              className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
+              className="flex cursor-pointer items-center gap-1 rounded-md px-3 py-2 transition-colors hover:bg-white/10"
             >
               Next
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </motion.div>
