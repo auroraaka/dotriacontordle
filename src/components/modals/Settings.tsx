@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { loadSettings, saveSettings } from '@/lib/storage';
 import { GameSettings } from '@/types/game';
-import { useGameActions } from '@/context/GameContext';
+import { useGameActions, useGameBoards } from '@/context/GameContext';
+import { getDailyNumber } from '@/lib/daily';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -13,8 +14,14 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const { newGame } = useGameActions();
+  const { gameMode, dailyNumber } = useGameBoards();
+  const { newGame, switchMode } = useGameActions();
   const [settings, setSettings] = useState<GameSettings>(() => loadSettings());
+  const currentDailyNumber = getDailyNumber();
+  const maxArchiveDay = Math.max(1, currentDailyNumber - 1);
+  const [archiveDaily, setArchiveDaily] = useState(maxArchiveDay);
+
+  const clampArchiveDaily = (value: number) => Math.max(1, Math.min(maxArchiveDay, value));
 
   const updateSetting = <K extends keyof GameSettings>(key: K, value: GameSettings[K]) => {
     const newSettings = { ...settings, [key]: value };
@@ -58,17 +65,67 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
           <div className="border-t border-white/10 mt-6 pt-6 space-y-3">
             <button
-              onClick={() => { newGame('daily'); onClose(); }}
+              onClick={() => {
+                if (gameMode === 'daily' && dailyNumber === currentDailyNumber) newGame('daily');
+                else switchMode('daily');
+                onClose();
+              }}
               className="w-full py-3 bg-accent hover:bg-accent/80 rounded-md font-bold transition-colors cursor-pointer"
             >
               Play Daily Puzzle
             </button>
             <button
-              onClick={() => { newGame('free'); onClose(); }}
+              onClick={() => {
+                if (gameMode === 'free') newGame('free');
+                else switchMode('free');
+                onClose();
+              }}
               className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-md font-bold transition-colors cursor-pointer"
             >
               Start Free Play
             </button>
+          </div>
+
+          <div className="border-t border-white/10 mt-6 pt-6">
+            <h3 className="font-bold mb-1">Daily Archive Practice</h3>
+            <p className="text-sm text-text-secondary mb-3">
+              Replay any previous daily seed by number.
+            </p>
+            <div className="flex items-center gap-2">
+              <label htmlFor="archive-day" className="text-sm text-text-secondary shrink-0">
+                Day #
+              </label>
+              <input
+                id="archive-day"
+                type="number"
+                min={1}
+                max={maxArchiveDay}
+                value={archiveDaily}
+                onChange={(e) => {
+                  const next = parseInt(e.target.value, 10);
+                  if (Number.isNaN(next)) {
+                    setArchiveDaily(1);
+                    return;
+                  }
+                  setArchiveDaily(clampArchiveDaily(next));
+                }}
+                className="w-full bg-bg-tertiary border border-white/15 rounded-md px-3 py-2 text-sm outline-none focus:border-accent"
+              />
+              <button
+                onClick={() => {
+                  const selectedDay = clampArchiveDaily(archiveDaily);
+                  if (gameMode === 'daily' && dailyNumber === selectedDay) newGame('daily', selectedDay);
+                  else switchMode('daily', selectedDay);
+                  onClose();
+                }}
+                className="px-3 py-2 rounded-md bg-white/10 hover:bg-white/20 text-sm font-semibold transition-colors whitespace-nowrap"
+              >
+                Play
+              </button>
+            </div>
+            <p className="text-xs text-text-secondary mt-2">
+              Available: #1 to #{maxArchiveDay}
+            </p>
           </div>
 
           <div className="border-t border-white/10 mt-6 pt-4 text-center text-xs text-text-secondary">

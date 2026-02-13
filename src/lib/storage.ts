@@ -1,22 +1,17 @@
 import { GameState, GameStats, GameSettings, BoardState, MAX_GUESSES } from '@/types/game';
 
 const STORAGE_KEYS = {
-  DAILY_STATE: 'dotriacontordle_daily_state',
+  DAILY_STATE_PREFIX: 'dotriacontordle_daily_state',
+  DAILY_STATE_LEGACY: 'dotriacontordle_daily_state',
   FREE_STATE: 'dotriacontordle_free_state',
   LAST_MODE: 'dotriacontordle_last_mode',
   STATS: 'dotriacontordle_stats',
   SETTINGS: 'dotriacontordle_settings',
 } as const;
 
-const DEFAULT_STATS: GameStats = {
-  gamesPlayed: 0,
-  gamesWon: 0,
-  currentStreak: 0,
-  maxStreak: 0,
-  guessDistribution: new Array(MAX_GUESSES).fill(0),
-  lastPlayedDaily: null,
-  lastCompletedDaily: null,
-};
+function getDailyStateKey(dailyNumber: number): string {
+  return `${STORAGE_KEYS.DAILY_STATE_PREFIX}_${dailyNumber}`;
+}
 
 const DEFAULT_SETTINGS: GameSettings = {
   glowMode: false,
@@ -50,7 +45,9 @@ function isStorageAvailable(): boolean {
 export function saveGameState(state: GameState, mode: 'daily' | 'free'): void {
   if (!isStorageAvailable()) return;
   
-  const key = mode === 'daily' ? STORAGE_KEYS.DAILY_STATE : STORAGE_KEYS.FREE_STATE;
+  const key = mode === 'daily'
+    ? getDailyStateKey(state.dailyNumber)
+    : STORAGE_KEYS.FREE_STATE;
   const stateToSave = { ...state, savedAt: Date.now() };
   
   try {
@@ -76,18 +73,43 @@ export function getLastPlayedMode(): 'daily' | 'free' {
 export function loadGameState(mode: 'daily' | 'free', currentDailyNumber?: number): GameState | null {
   if (!isStorageAvailable()) return null;
   
-  const key = mode === 'daily' ? STORAGE_KEYS.DAILY_STATE : STORAGE_KEYS.FREE_STATE;
-  
   try {
-    const saved = localStorage.getItem(key);
-    if (!saved) return null;
-    
+    let saved: string | null = null;
+    let sourceKey: string | null = null;
+
+    if (mode === 'daily') {
+      if (typeof currentDailyNumber !== 'number') return null;
+      const keyedState = localStorage.getItem(getDailyStateKey(currentDailyNumber));
+      if (keyedState) {
+        saved = keyedState;
+        sourceKey = getDailyStateKey(currentDailyNumber);
+      } else {
+        const legacyState = localStorage.getItem(STORAGE_KEYS.DAILY_STATE_LEGACY);
+        if (legacyState) {
+          saved = legacyState;
+          sourceKey = STORAGE_KEYS.DAILY_STATE_LEGACY;
+        }
+      }
+    } else {
+      saved = localStorage.getItem(STORAGE_KEYS.FREE_STATE);
+      sourceKey = STORAGE_KEYS.FREE_STATE;
+    }
+
+    if (!saved || !sourceKey) return null;
+
     const state = JSON.parse(saved) as (GameState & { savedAt?: number }) | (Partial<GameState> & { savedAt?: number });
     
     if (mode === 'daily' && currentDailyNumber !== undefined) {
       if (state.dailyNumber !== currentDailyNumber) {
-        localStorage.removeItem(key);
+        if (sourceKey === STORAGE_KEYS.DAILY_STATE_LEGACY) {
+          localStorage.removeItem(sourceKey);
+        }
         return null;
+      }
+
+      if (sourceKey === STORAGE_KEYS.DAILY_STATE_LEGACY) {
+        localStorage.setItem(getDailyStateKey(currentDailyNumber), saved);
+        localStorage.removeItem(sourceKey);
       }
     }
     

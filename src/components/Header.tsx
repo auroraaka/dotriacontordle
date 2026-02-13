@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { HelpCircle, BarChart3, Settings, Clock, Pause, Play, Volume2, VolumeX } from 'lucide-react';
+import { HelpCircle, BarChart3, Settings, Clock, Pause, Play, Volume2, VolumeX, Keyboard as KeyboardIcon } from 'lucide-react';
 import { useGameActions, useGameBoards } from '@/context/GameContext';
 import { HowToPlayModal } from './modals/HowToPlay';
 import { StatsModal } from './modals/Stats';
 import { SettingsModal } from './modals/Settings';
+import { ShortcutsModal } from './modals/Shortcuts';
 import { loadSettings, saveSettings } from '@/lib/storage';
 import { primeFeedback } from '@/lib/feedback';
 
@@ -26,10 +27,11 @@ function formatElapsed(ms: number): string {
 
 export function Header() {
   const state = useGameBoards();
-  const { newGame, toggleTimer } = useGameActions();
+  const { newGame, switchMode, toggleTimer } = useGameActions();
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [feedbackEnabled, setFeedbackEnabled] = useState(() => loadSettings().feedbackEnabled);
 
   const solvedCount = state.boards.filter((b) => b.solved).length;
@@ -142,6 +144,9 @@ export function Header() {
               <IconButton onClick={toggleFeedback} title={feedbackEnabled ? 'Mute (sound + haptics)' : 'Unmute (sound + haptics)'}>
                 {feedbackEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </IconButton>
+              <IconButton onClick={() => setShowShortcuts(true)} title="Keyboard Shortcuts">
+                <KeyboardIcon className="w-5 h-5" />
+              </IconButton>
               <IconButton onClick={() => setShowHowToPlay(true)} title="How to Play">
                 <HelpCircle className="w-5 h-5" />
               </IconButton>
@@ -153,7 +158,10 @@ export function Header() {
               </IconButton>
               {state.gameStatus !== 'playing' && (
                 <button
-                  onClick={() => newGame('free')}
+                  onClick={() => {
+                    if (state.gameMode === 'free') newGame('free');
+                    else switchMode('free');
+                  }}
                   className="ml-2 px-3 py-1.5 bg-accent text-white rounded-md text-sm font-medium hover:bg-accent/80 transition-colors cursor-pointer"
                 >
                   New Game
@@ -191,6 +199,7 @@ export function Header() {
         </div>
       </header>
 
+      {showShortcuts && <ShortcutsModal isOpen={true} onClose={() => setShowShortcuts(false)} />}
       {showHowToPlay && <HowToPlayModal isOpen={true} onClose={() => setShowHowToPlay(false)} />}
       {showStats && <StatsModal isOpen={true} onClose={() => setShowStats(false)} />}
       {showSettings && <SettingsModal isOpen={true} onClose={() => setShowSettings(false)} />}

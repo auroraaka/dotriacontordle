@@ -383,7 +383,7 @@ describe('Game input mechanics', () => {
       const preGuesses = Array.from({ length: MAX_GUESSES - 1 }, (_, i) => idxToWord(i + 1));
 
       localStorage.setItem(
-        'dotriacontordle_daily_state',
+        'dotriacontordle_daily_state_42',
         JSON.stringify({
           boards: MOCK_ANSWERS.map((answer) => ({ answer, solved: false, solvedAtGuess: null })),
           guesses: preGuesses,
@@ -424,7 +424,7 @@ describe('Game input mechanics', () => {
       expect(screen.getByTestId('gameStatus').textContent).toBe('lost');
       expect(screen.getByTestId('currentGuess').textContent).toBe('');
 
-      const saved = localStorage.getItem('dotriacontordle_daily_state');
+      const saved = localStorage.getItem('dotriacontordle_daily_state_42');
       expect(saved).not.toBeNull();
       const parsed = JSON.parse(saved as string) as { gameStatus: string; currentGuess: string; guesses: string[] };
       expect(parsed.gameStatus).toBe('lost');

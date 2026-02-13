@@ -30,7 +30,7 @@ type GameAction =
   | { type: 'SUBMIT_GUESS'; guess: string }
   | { type: 'TOGGLE_TIMER' }
   | { type: 'SET_EXPANDED_BOARD'; boardIndex: number | null }
-  | { type: 'NEW_GAME'; mode: 'daily' | 'free' }
+  | { type: 'NEW_GAME'; mode: 'daily' | 'free'; dailyNumber?: number }
   | { type: 'LOAD_STATE'; state: GameState };
 
 interface GameContextType {
@@ -44,7 +44,8 @@ interface GameContextType {
   submitGuess: () => void;
   toggleTimer: () => void;
   setExpandedBoard: (boardIndex: number | null) => void;
-  newGame: (mode: 'daily' | 'free') => void;
+  newGame: (mode: 'daily' | 'free', dailyNumber?: number) => void;
+  switchMode: (mode: 'daily' | 'free', dailyNumber?: number) => void;
   getEvaluationForBoard: (boardIndex: number, guessIndex: number) => TileState[];
 }
 
@@ -78,6 +79,7 @@ type GameActions = Pick<
   | 'toggleTimer'
   | 'setExpandedBoard'
   | 'newGame'
+  | 'switchMode'
   | 'getEvaluationForBoard'
 >;
 
@@ -88,8 +90,10 @@ const GameInputContext = createContext<GameInputSnapshot | null>(null);
 const GameActionsContext = createContext<GameActions | null>(null);
 const GameAuxContext = createContext<GameAux | null>(null);
 
-function createInitialState(mode: 'daily' | 'free'): GameState {
-  const dailyNumber = getDailyNumber();
+function createInitialState(mode: 'daily' | 'free', dailyNumberOverride?: number): GameState {
+  const dailyNumber = mode === 'daily'
+    ? (dailyNumberOverride ?? getDailyNumber())
+    : getDailyNumber();
   const answers = mode === 'daily'
     ? getDailyAnswers(dailyNumber)
     : getRandomAnswers(NUM_BOARDS);
@@ -233,7 +237,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, expandedBoard: action.boardIndex };
 
     case 'NEW_GAME':
-      return createInitialState(action.mode);
+      return createInitialState(action.mode, action.dailyNumber);
 
     case 'LOAD_STATE':
       return action.state;
@@ -276,8 +280,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     
     async function init() {
       setIsLoadingWords(true);
-      const startTime = Date.now();
-      const MIN_LOADING_TIME = 2000;
       
       try {
         await initializeWordService();
@@ -285,12 +287,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         console.error('Failed to initialize word service:', e);
       } finally {
         if (mounted) {
-          const elapsed = Date.now() - startTime;
-          const remainingTime = Math.max(0, MIN_LOADING_TIME - elapsed);
-          
-          setTimeout(() => {
-            if (mounted) setIsLoadingWords(false);
-          }, remainingTime);
+          setIsLoadingWords(false);
         }
       }
     }
@@ -329,23 +326,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isInitialized) return;
     saveGameState(state, state.gameMode);
-  }, [
-    isInitialized,
-    state.gameMode,
-    state.dailyNumber,
-    state.gameId,
-    state.boards,
-    state.guesses,
-    state.keyboardState,
-    state.gameStatus,
-    state.expandedBoard,
-    state.startedAt,
-    state.endedAt,
-    state.timerRunning,
-    state.timerBaseElapsedMs,
-    state.timerResumedAt,
-    state.timerToggledAt,
-  ]);
+  }, [isInitialized, state]);
 
   useEffect(() => {
     if (isInitialized && (state.gameStatus === 'won' || state.gameStatus === 'lost')) {
@@ -466,9 +447,49 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_EXPANDED_BOARD', boardIndex });
   }, []);
 
-  const newGame = useCallback((mode: 'daily' | 'free') => {
+  const newGame = useCallback((mode: 'daily' | 'free', dailyNumber?: number) => {
     setError(null);
-    dispatch({ type: 'NEW_GAME', mode });
+    dispatch({ type: 'NEW_GAME', mode, dailyNumber });
+  }, []);
+
+  const switchMode = useCallback((mode: 'daily' | 'free', dailyNumber?: number) => {
+    setError(null);
+    const current = stateRef.current;
+    const targetDailyNumber = mode === 'daily' ? (dailyNumber ?? getDailyNumber()) : undefined;
+    const switchingModes = current.gameMode !== mode;
+    const switchingDailySeed =
+      mode === 'daily' &&
+      current.gameMode === 'daily' &&
+      current.dailyNumber !== targetDailyNumber;
+
+    if (!switchingModes && !switchingDailySeed) return;
+
+    const savedState = mode === 'daily'
+      ? loadGameState('daily', targetDailyNumber)
+      : loadGameState('free');
+    const hasInProgressState =
+      savedState?.gameStatus === 'playing' &&
+      ((savedState.guesses?.length ?? 0) > 0 || (savedState.currentGuess?.length ?? 0) > 0);
+
+    if (hasInProgressState) {
+      const isTodayDaily = mode === 'daily' && targetDailyNumber === getDailyNumber();
+      const modeLabel = mode === 'free'
+        ? 'Free Play'
+        : isTodayDaily
+          ? 'Daily Puzzle'
+          : `Daily #${targetDailyNumber}`;
+
+      const resume = window.confirm(
+        `Resume your in-progress ${modeLabel} game? Press Cancel to start a new one.`
+      );
+
+      if (resume) {
+        dispatch({ type: 'LOAD_STATE', state: savedState });
+        return;
+      }
+    }
+
+    dispatch({ type: 'NEW_GAME', mode, dailyNumber: targetDailyNumber });
   }, []);
 
   const getEvaluationForBoard = useCallback((boardIndex: number, guessIndex: number): TileState[] => {
@@ -532,9 +553,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       toggleTimer,
       setExpandedBoard,
       newGame,
+      switchMode,
       getEvaluationForBoard,
     }),
-    [addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard, newGame, getEvaluationForBoard]
+    [addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard, newGame, switchMode, getEvaluationForBoard]
   );
 
   const auxValue = useMemo<GameAux>(
@@ -555,9 +577,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       toggleTimer,
       setExpandedBoard,
       newGame,
+      switchMode,
       getEvaluationForBoard,
     }),
-    [state, stats, error, isLoadingWords, isValidating, addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard, newGame, getEvaluationForBoard]
+    [state, stats, error, isLoadingWords, isValidating, addLetter, removeLetter, submitGuess, toggleTimer, setExpandedBoard, newGame, switchMode, getEvaluationForBoard]
   );
 
   return (
