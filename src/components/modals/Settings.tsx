@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { loadSettings, saveSettings } from '@/lib/storage';
@@ -27,7 +27,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [settings, setSettings] = useState<GameSettings>(() => loadSettings());
   const currentDailyNumber = getDailyNumber();
   const maxArchiveDay = Math.max(1, currentDailyNumber - 1);
-  const [archiveDaily, setArchiveDaily] = useState(maxArchiveDay);
+  const [archiveDailyInput, setArchiveDailyInput] = useState(String(maxArchiveDay));
   const preferredConfig = normalizeGameConfig({
     wordLength: settings.preferredWordLength,
     boardCount: settings.preferredBoardCount,
@@ -35,6 +35,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   });
 
   const clampArchiveDaily = (value: number) => Math.max(1, Math.min(maxArchiveDay, value));
+  const parsedArchiveDaily = Number.parseInt(archiveDailyInput, 10);
+  const archiveDaily = Number.isNaN(parsedArchiveDaily) ? 1 : clampArchiveDaily(parsedArchiveDaily);
 
   const updateSetting = <K extends keyof GameSettings>(key: K, value: GameSettings[K]) => {
     const newSettings = { ...settings, [key]: value };
@@ -94,7 +96,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <div className="space-y-4">
             <SettingRow
               title="Glow Mode"
-              description="Inverted neon color theme with enhanced glow effects"
+              description="Inverted neon color theme"
               enabled={settings.glowMode}
               onChange={(enabled) => updateSetting('glowMode', enabled)}
             />
@@ -189,17 +191,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </label>
               <input
                 id="archive-day"
-                type="number"
+                type="text"
+                inputMode="numeric"
                 min={1}
                 max={maxArchiveDay}
-                value={archiveDaily}
+                value={archiveDailyInput}
                 onChange={(e) => {
-                  const next = parseInt(e.target.value, 10);
-                  if (Number.isNaN(next)) {
-                    setArchiveDaily(1);
-                    return;
-                  }
-                  setArchiveDaily(clampArchiveDaily(next));
+                  const next = e.target.value.replace(/[^\d]/g, '');
+                  setArchiveDailyInput(next);
+                }}
+                onBlur={() => {
+                  const parsed = parseInt(archiveDailyInput, 10);
+                  const next = Number.isNaN(parsed) ? 1 : clampArchiveDaily(parsed);
+                  setArchiveDailyInput(String(next));
                 }}
                 className="bg-bg-tertiary focus:border-accent w-full rounded-md border border-white/15 px-3 py-2 text-sm outline-none"
               />
@@ -247,6 +251,12 @@ function LabeledNumberInput({
   max: number;
   onChange: (value: number) => void;
 }) {
+  const [rawValue, setRawValue] = useState(String(value));
+
+  useEffect(() => {
+    setRawValue(String(value));
+  }, [value]);
+
   return (
     <div className="space-y-1">
       <label htmlFor={id} className="text-text-secondary text-xs">
@@ -254,14 +264,30 @@ function LabeledNumberInput({
       </label>
       <input
         id={id}
-        type="number"
+        type="text"
+        inputMode="numeric"
         min={min}
         max={max}
-        value={value}
+        value={rawValue}
         onChange={(e) => {
-          const next = parseInt(e.target.value, 10);
-          if (Number.isNaN(next)) return;
+          const next = e.target.value.replace(/[^\d]/g, '');
+          setRawValue(next);
+        }}
+        onBlur={() => {
+          const parsed = parseInt(rawValue, 10);
+          if (Number.isNaN(parsed)) {
+            setRawValue(String(value));
+            return;
+          }
+          const next = Math.max(min, Math.min(max, parsed));
+          setRawValue(String(next));
           onChange(next);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            event.currentTarget.blur();
+          }
         }}
         className="bg-bg-tertiary focus:border-accent w-full rounded-md border border-white/15 px-2 py-2 text-sm outline-none"
       />

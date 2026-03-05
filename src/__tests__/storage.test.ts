@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   saveGameState,
   loadGameState,
@@ -74,6 +74,81 @@ describe('Game State Storage', () => {
     const loaded = loadGameState('daily', mockGameState.dailyNumber, DEFAULT_GAME_CONFIG);
     expect(loaded).not.toBeNull();
     expect(localStorage.getItem(v2Key)).not.toBeNull();
+  });
+
+  it('rewinds running timer progression to saved snapshot on hydrate', () => {
+    try {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(20_000));
+
+      const freeStateKey = `dotriacontordle_free_state_v2_${DEFAULT_GAME_CONFIG.profileId}`;
+      const raw = {
+        ...mockGameState,
+        gameMode: 'free',
+        startedAt: 1000,
+        timerRunning: true,
+        timerBaseElapsedMs: 5_000,
+        timerResumedAt: 1_000,
+        savedAt: 3_000,
+        timerToggledAt: 1_000,
+      };
+
+      localStorage.setItem(freeStateKey, JSON.stringify(raw));
+
+      const loaded = loadGameState('free', undefined, DEFAULT_GAME_CONFIG);
+
+      expect(loaded).not.toBeNull();
+      expect(loaded?.timerBaseElapsedMs).toBe(7_000);
+      expect(loaded?.timerRunning).toBe(true);
+      expect(loaded?.timerResumedAt).toBe(20_000);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not inflate timer from stale start timestamp when timer state is missing', () => {
+    try {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(20_000));
+
+      const freeStateKey = `dotriacontordle_free_state_v2_${DEFAULT_GAME_CONFIG.profileId}`;
+      const raw: Partial<GameState & { savedAt: number }> = {
+        boards: [{ answer: 'CASTLE', solved: false, solvedAtGuess: null }],
+        guesses: [],
+        currentGuess: '',
+        gameStatus: 'playing',
+        keyboardState: {},
+        expandedBoard: null,
+        gameMode: 'free',
+        dailyNumber: 1,
+        startedAt: 1_000,
+        endedAt: null,
+        timerRunning: undefined as unknown as boolean,
+        timerBaseElapsedMs: Number.NaN,
+        timerResumedAt: null,
+        timerToggledAt: 0,
+        gameId: 'legacy-timer-free',
+      };
+
+      localStorage.setItem(
+        freeStateKey,
+        JSON.stringify({
+          ...raw,
+          config: DEFAULT_GAME_CONFIG,
+          savedAt: 3_000,
+          timerRunning: undefined,
+        })
+      );
+
+      const loaded = loadGameState('free', undefined, DEFAULT_GAME_CONFIG);
+
+      expect(loaded).not.toBeNull();
+      expect(loaded?.timerBaseElapsedMs).toBe(0);
+      expect(loaded?.timerRunning).toBe(false);
+      expect(loaded?.startedAt).toBe(1_000);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

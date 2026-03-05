@@ -4,6 +4,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { GameProvider, useGame } from '@/context/GameContext';
 import { isValidWord } from '@/lib/wordService';
 import { MAX_GUESSES } from '@/types/game';
+import { DEFAULT_GAME_CONFIG } from '@/lib/gameConfig';
 
 const MOCK_ANSWERS = [
   'ACTION',
@@ -68,7 +69,8 @@ interface HarnessProps {
 }
 
 function Harness({ customWord }: HarnessProps) {
-  const { state, error, isValidating, addLetter, removeLetter, submitGuess, newGame } = useGame();
+  const { state, error, isValidating, addLetter, removeLetter, submitGuess, newGame, switchMode } =
+    useGame();
 
   const typeWord = (word: string) => {
     word.split('').forEach(addLetter);
@@ -80,11 +82,18 @@ function Harness({ customWord }: HarnessProps) {
       <div data-testid="currentGuess">{state.currentGuess}</div>
       <div data-testid="error">{error ?? ''}</div>
       <div data-testid="gameStatus">{state.gameStatus}</div>
+      <div data-testid="gameMode">{state.gameMode}</div>
+      <div data-testid="timerRunning">{state.timerRunning ? 'true' : 'false'}</div>
+      <div data-testid="startedAt">
+        {state.startedAt === null ? '' : state.startedAt.toString()}
+      </div>
       <div data-testid="isValidating">{isValidating ? 'true' : 'false'}</div>
       <div data-testid="guessCount">{state.guesses.length}</div>
       <div data-testid="solvedBoards">{state.boards.filter((b) => b.solved).length}</div>
       <div data-testid="keyboardState">{JSON.stringify(state.keyboardState)}</div>
       <button onClick={() => newGame('free')}>new</button>
+      <button onClick={() => switchMode('free')}>switch-free</button>
+      <button onClick={() => switchMode('daily', 42)}>switch-daily</button>
       <button onClick={() => typeWord(customWord || 'ABROAD')}>type</button>
       <button onClick={() => typeWord('ACTION')}>typeAction</button>
       <button onClick={() => typeWord('CAT')}>typeShort</button>
@@ -141,6 +150,54 @@ describe('Game input mechanics', () => {
       expect(screen.getByTestId('error').textContent).toBe('Already guessed');
 
       expect(vi.mocked(isValidWord)).toHaveBeenCalledTimes(1);
+    });
+
+    it('resumes a switch-mode free game with an active timer', async () => {
+      const freeStateKey = `dotriacontordle_free_state_v2_${DEFAULT_GAME_CONFIG.profileId}`;
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      try {
+        localStorage.setItem(
+          freeStateKey,
+          JSON.stringify({
+            config: DEFAULT_GAME_CONFIG,
+            boards: [{ answer: 'CASTLE', solved: false, solvedAtGuess: null }],
+            guesses: [],
+            currentGuess: '',
+            gameStatus: 'playing',
+            keyboardState: {},
+            expandedBoard: null,
+            gameMode: 'free',
+            dailyNumber: 1,
+            startedAt: 1_000,
+            endedAt: null,
+            timerRunning: true,
+            timerBaseElapsedMs: 2_500,
+            timerResumedAt: 1_000,
+            timerToggledAt: 1_000,
+            gameId: 'switch-free-active-timer',
+          })
+        );
+
+        render(
+          <GameProvider>
+            <Harness />
+          </GameProvider>
+        );
+
+        await act(async () => {
+          await vi.runAllTimersAsync();
+        });
+
+        fireEvent.click(screen.getByText('switch-free'));
+
+        expect(confirmSpy).toHaveBeenCalled();
+        expect(screen.getByTestId('gameMode').textContent).toBe('free');
+        expect(screen.getByTestId('startedAt').textContent).toBe('1000');
+        expect(screen.getByTestId('timerRunning').textContent).toBe('true');
+      } finally {
+        confirmSpy.mockRestore();
+      }
     });
 
     it('allows submitting different words', async () => {

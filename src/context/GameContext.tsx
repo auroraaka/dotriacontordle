@@ -521,7 +521,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           : loadGameState('free', undefined, nextConfig);
       const hasInProgressState =
         savedState?.gameStatus === 'playing' &&
-        ((savedState.guesses?.length ?? 0) > 0 || (savedState.currentGuess?.length ?? 0) > 0);
+        ((savedState.guesses?.length ?? 0) > 0 ||
+          (savedState.currentGuess?.length ?? 0) > 0 ||
+          savedState.startedAt !== null ||
+          savedState.timerRunning);
 
       if (hasInProgressState) {
         const isTodayDaily = mode === 'daily' && targetDailyNumber === getDailyNumber();
