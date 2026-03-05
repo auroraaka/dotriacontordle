@@ -33,6 +33,25 @@ const DEFAULT_SETTINGS: GameSettings = {
   preferredMaxGuesses: DEFAULT_GAME_CONFIG.maxGuesses,
 };
 
+const MAX_RESUME_DELAY_MS = 24 * 60 * 60 * 1000;
+
+function toSafeTimestamp(value: unknown, now: number): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return null;
+  if (value > now) return now;
+  return Math.floor(value);
+}
+
+function toSafeNonNegativeMs(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return 0;
+  return Math.floor(value);
+}
+
+function clampTimerDelay(delayMs: number): number {
+  if (delayMs < 0) return 0;
+  if (delayMs > MAX_RESUME_DELAY_MS) return MAX_RESUME_DELAY_MS;
+  return delayMs;
+}
+
 function createDefaultStats(maxGuesses: number): GameStats {
   return {
     gamesPlayed: 0,
@@ -66,7 +85,9 @@ function inferHydratedState(
   rawState: (GameState & { savedAt?: number }) | (Partial<GameState> & { savedAt?: number }),
   fallbackConfig: GameConfig
 ): GameState {
-  const savedAt = (rawState as { savedAt?: number }).savedAt;
+  const now = Date.now();
+  const rawSavedAt = (rawState as { savedAt?: number }).savedAt;
+  const savedAt = toSafeTimestamp(rawSavedAt, now);
   const config = normalizeGameConfig((rawState as GameState).config ?? fallbackConfig);
   const guesses = Array.isArray((rawState as GameState).guesses)
     ? (rawState as GameState).guesses
@@ -75,35 +96,43 @@ function inferHydratedState(
     typeof (rawState as GameState).currentGuess === 'string'
       ? (rawState as GameState).currentGuess
       : '';
-  const gameStatus = (rawState as GameState).gameStatus ?? 'playing';
+  const rawStatus = (rawState as GameState).gameStatus;
+  const gameStatus: 'playing' | 'won' | 'lost' =
+    rawStatus === 'won' || rawStatus === 'lost' ? rawStatus : 'playing';
   const hasProgress = guesses.length > 0 || currentGuess.length > 0;
+  const rawStartedAt = toSafeTimestamp((rawState as Partial<GameState>).startedAt, now);
+  const rawEndedAt = toSafeTimestamp((rawState as Partial<GameState>).endedAt, now);
+  const rawTimerResumedAt = toSafeTimestamp((rawState as Partial<GameState>).timerResumedAt, now);
+  const rawTimerToggledAt = toSafeTimestamp((rawState as Partial<GameState>).timerToggledAt, now);
+  const rawTimerRunning = (rawState as Partial<GameState>).timerRunning === true;
 
   const inferredStart =
-    (rawState as GameState).startedAt ?? (hasProgress ? (savedAt ?? Date.now()) : null);
+    rawStartedAt ??
+    (hasProgress || rawTimerRunning || rawTimerResumedAt !== null ? (savedAt ?? now) : null);
 
   const inferredEnd =
-    (rawState as GameState).endedAt ?? (gameStatus !== 'playing' ? (savedAt ?? Date.now()) : null);
+    rawEndedAt ?? (gameStatus !== 'playing' ? (inferredStart ?? savedAt ?? null) : null);
 
-  const inferredTimerBaseElapsedMs =
-    typeof (rawState as GameState).timerBaseElapsedMs === 'number'
-      ? (rawState as GameState).timerBaseElapsedMs
-      : inferredStart === null
-        ? 0
-        : gameStatus !== 'playing'
-          ? Math.max(0, (inferredEnd ?? savedAt ?? Date.now()) - inferredStart)
-          : Math.max(0, Date.now() - inferredStart);
+  let inferredTimerBaseElapsedMs = toSafeNonNegativeMs(
+    (rawState as Partial<GameState>).timerBaseElapsedMs
+  );
+  if (inferredTimerBaseElapsedMs === 0 && inferredStart !== null && gameStatus !== 'playing') {
+    const baseFromGameWindow = inferredEnd !== null ? Math.max(0, inferredEnd - inferredStart) : 0;
+    inferredTimerBaseElapsedMs = clampTimerDelay(baseFromGameWindow);
+  }
 
-  const inferredTimerRunning =
-    typeof (rawState as GameState).timerRunning === 'boolean'
-      ? (rawState as GameState).timerRunning
-      : Boolean(gameStatus === 'playing' && inferredStart !== null);
+  const inferredTimerRunning = gameStatus === 'playing' ? rawTimerRunning : false;
 
-  const inferredTimerResumedAt =
-    typeof (rawState as GameState).timerResumedAt === 'number'
-      ? (rawState as GameState).timerResumedAt
-      : inferredTimerRunning
-        ? Date.now()
-        : null;
+  let inferredTimerResumedAt = inferredTimerRunning
+    ? (rawTimerResumedAt ?? rawStartedAt ?? now)
+    : null;
+
+  if (gameStatus === 'playing' && inferredTimerRunning && inferredTimerResumedAt !== null) {
+    const resumeReference = savedAt ?? now;
+    const elapsedBeforeResume = clampTimerDelay(resumeReference - inferredTimerResumedAt);
+    inferredTimerBaseElapsedMs = inferredTimerBaseElapsedMs + elapsedBeforeResume;
+    inferredTimerResumedAt = now;
+  }
 
   const dailyNumber =
     typeof (rawState as GameState).dailyNumber === 'number'
@@ -134,13 +163,11 @@ function inferHydratedState(
     dailyNumber,
     startedAt: inferredStart,
     endedAt: inferredEnd,
-    timerRunning: inferredTimerRunning,
+    timerRunning: gameStatus === 'playing' && inferredTimerRunning,
     timerBaseElapsedMs: inferredTimerBaseElapsedMs,
-    timerResumedAt: inferredTimerRunning ? inferredTimerResumedAt : null,
-    timerToggledAt:
-      typeof (rawState as GameState).timerToggledAt === 'number'
-        ? (rawState as GameState).timerToggledAt
-        : null,
+    timerResumedAt:
+      gameStatus === 'playing' && inferredTimerRunning ? inferredTimerResumedAt : null,
+    timerToggledAt: rawTimerToggledAt,
     gameId,
   };
 }
@@ -191,10 +218,10 @@ export function loadGameState(
   if (!isStorageAvailable()) return null;
 
   const config = normalizeGameConfig(configInput ?? DEFAULT_GAME_CONFIG);
+  let sourceKey: string | null = null;
 
   try {
     let saved: string | null = null;
-    let sourceKey: string | null = null;
 
     if (mode === 'daily') {
       if (typeof currentDailyNumber !== 'number') return null;
@@ -265,6 +292,9 @@ export function loadGameState(
     return hydrated;
   } catch (error) {
     console.error('Failed to load game state:', error);
+    if (sourceKey) {
+      localStorage.removeItem(sourceKey);
+    }
     return null;
   }
 }
